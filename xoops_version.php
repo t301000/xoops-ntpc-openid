@@ -44,7 +44,7 @@ $modversion['adminindex'] = 'admin/index.php';
 $modversion['adminmenu']  = 'admin/menu.php';
 
 //---前台主選單設定---//
-$modversion['hasMain'] = 0;
+$modversion['hasMain'] = 1;
 //$modversion['sub'][1]['name'] = '';
 //$modversion['sub'][1]['url'] = '';
 
@@ -56,11 +56,11 @@ $modversion['hasMain'] = 0;
 //---樣板設定---//
 $modversion['templates']                    = array();
 $i                                          = 1;
-$modversion['templates'][$i]['file']        = 'demo_adm_main.tpl';
+$modversion['templates'][$i]['file']        = 'ntpc_openid_adm_main.tpl';
 $modversion['templates'][$i]['description'] = '後台管理頁樣板';
 
 $i++;
-$modversion['templates'][$i]['file']        = 'demo_index.tpl';
+$modversion['templates'][$i]['file']        = 'ntpc_openid_index.tpl';
 $modversion['templates'][$i]['description'] = '模組首頁樣板';
 
 //---偏好設定---//
