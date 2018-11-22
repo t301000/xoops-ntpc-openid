@@ -8,10 +8,16 @@ $adminmenu[$i]['desc']  = _MI_TAD_ADMIN_HOME_DESC;
 $adminmenu[$i]['icon']  = 'images/admin/home.png';
 
 $i++;
-$adminmenu[$i]['title'] = _MI_XXX_ADMENU1;
+$adminmenu[$i]['title'] = _MI_NTPCOPENID_ADMENU1;
 $adminmenu[$i]['link']  = "admin/main.php";
-$adminmenu[$i]['desc']  = _MI_XXX_ADMENU1_DESC;
-$adminmenu[$i]['icon']  = 'images/admin/button.png';
+$adminmenu[$i]['desc']  = _MI_NTPCOPENID_ADMENU1_DESC;
+$adminmenu[$i]['icon']  = 'images/admin/shield.png';
+
+$i++;
+$adminmenu[$i]['title'] = _MI_NTPCOPENID_ADMENU2;
+$adminmenu[$i]['link']  = "admin/group.php";
+$adminmenu[$i]['desc']  = _MI_NTPCOPENID_ADMENU2_DESC;
+$adminmenu[$i]['icon']  = 'images/admin/team.png';
 
 $i++;
 $adminmenu[$i]['title'] = _MI_TAD_ADMIN_ABOUT;

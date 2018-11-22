@@ -1,6 +1,6 @@
 <?php
 /*-----------引入檔案區--------------*/
-$xoopsOption['template_main'] = "ntpc_openid_adm_index.html";
+$xoopsOption['template_main'] = "ntpc_openid_adm_main.tpl";
 include_once "header.php";
 include_once "../function.php";
 
@@ -33,6 +33,6 @@ function show_content()
 {
     global $xoopsTpl;
 
-    $main = "後台頁面開發中";
+    $main = "登入規則頁面開發中";
     $xoopsTpl->assign('content', $main);
 }

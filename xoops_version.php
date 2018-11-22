@@ -57,7 +57,11 @@ $modversion['hasMain'] = 1;
 $modversion['templates']                    = array();
 $i                                          = 1;
 $modversion['templates'][$i]['file']        = 'ntpc_openid_adm_main.tpl';
-$modversion['templates'][$i]['description'] = '後台管理頁樣板';
+$modversion['templates'][$i]['description'] = '後台登入規則管理頁樣板';
+
+$i++;
+$modversion['templates'][$i]['file']        = 'ntpc_openid_adm_group.tpl';
+$modversion['templates'][$i]['description'] = '後台自動群組管理頁樣板';
 
 $i++;
 $modversion['templates'][$i]['file']        = 'ntpc_openid_index.tpl';
