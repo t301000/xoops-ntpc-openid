@@ -15,9 +15,6 @@ define('RULES', [
     ['id' => '014569', 'role' => '教師'],
 ]);
 
-// 被拒絕登入之訊息
-define('REJECTED_MESSAGE', '您無法登入本校網站');
-
 // 行政人員職稱，https://openid.ntpc.edu.tw/home/about/
 define('OFFICER', [
     '校長',
@@ -42,11 +39,7 @@ define('OFFICER', [
     '資料組長',
     '特教組長',
     '校護',
-    '幹事',
 ]);
-
-// 行政群組 id
-define('OFFICER_GID', 99);
 
 // 向 OpenID 要求取回之欄位
 define('OPENID_REQUIRED', [

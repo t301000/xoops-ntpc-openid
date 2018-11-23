@@ -177,13 +177,15 @@ function getOpenidUserData() {
  * @param $user_data
  */
 function checkThenLogin($user_data) {
+    global $xoopsModuleConfig;
+
     $canLogin = loginGuard($user_data);
     // echo "canLogin => $canLogin";
     // die;
 
     // 拒絕登入則導回首頁
     if (!$canLogin) {
-        redirect_header(XOOPS_URL, 5, REJECTED_MESSAGE, false);
+        redirect_header(XOOPS_URL, 5, $xoopsModuleConfig['reject_msg'], false);
     }
 
     login_user($user_data);
@@ -492,7 +494,7 @@ function get_uid($uname, $data, $officer = false) {
  * @return mixed
  */
 function createUser($data, $officer = false, $url = '', $from = '', $sig = '', $bio = '', $occ = '', $aim = '', $yim = '', $msnm = '') {
-    global $xoopsConfig, $xoopsDB;
+    global $xoopsConfig, $xoopsDB, $xoopsModuleConfig;
 
     $member_handler = xoops_getHandler('member');
 
@@ -543,15 +545,15 @@ function createUser($data, $officer = false, $url = '', $from = '', $sig = '', $
         // 加入註冊會員群組
         $sql = "INSERT INTO `" . $xoopsDB->prefix('groups_users_link') . "`  (groupid, uid) VALUES  (2, " . $uid . ")";
 
-        // 若為行政帳號，加入行政群組
-        if ($officer) {
-            $sql .= ", (" . OFFICER_GID . ", $uid)";
+        // 若為行政帳號，加入行政群組，gid 必大於 3（1~3為內建群組）
+        if ($officer && $xoopsModuleConfig['officer_gid'] > 3) {
+            $sql .= ", (" . $xoopsModuleConfig['officer_gid'] . ", $uid)";
         }
 
         $xoopsDB->queryF($sql) or web_error($sql);
 
         // 紀錄隨機密碼
-        $sql = "replace into `" . $xoopsDB->prefix('tad_login_random_pass') . "` (`uname` , `random_pass`) values  ('{$uname}','{$pass}')";
+        $sql = "replace into `" . $xoopsDB->prefix('ntpc_openid_random_pass') . "` (`uname` , `random_pass`) values  ('{$uname}','{$pass}')";
         $xoopsDB->queryF($sql) or web_error($sql);
 
     } else {
@@ -574,7 +576,7 @@ function getPass($uname = "")
         return;
     }
 
-    $sql               = "select `random_pass` from `" . $xoopsDB->prefix('tad_login_random_pass') . "` where `uname`='{$uname}'";
+    $sql               = "select `random_pass` from `" . $xoopsDB->prefix('ntpc_openid_random_pass') . "` where `uname`='{$uname}'";
     $result            = $xoopsDB->queryF($sql) or web_error($sql);
     list($random_pass) = $xoopsDB->fetchRow($result);
 

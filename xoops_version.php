@@ -35,8 +35,8 @@ $modversion['paypal']['currency_code'] = 'USD';
 $modversion['system_menu'] = 1;
 
 //---模組資料表架構---//
-//$modversion['sqlfile']['mysql'] = 'sql/mysql.sql';
-//$modversion['tables'][0] = '';
+$modversion['sqlfile']['mysql'] = 'sql/mysql.sql';
+$modversion['tables'][0] = 'ntpc_openid_random_pass';
 
 //---後台管理介面設定---//
 $modversion['hasAdmin']   = 1;
@@ -69,16 +69,29 @@ $modversion['templates'][$i]['description'] = '模組首頁樣板';
 
 //---偏好設定---//
 $modversion['config'] = array();
-//$i=0;
-//$modversion['config'][$i]['name']    = '偏好設定名稱（英文）';
-//$modversion['config'][$i]['title']    = '偏好設定標題（常數）';
-//$modversion['config'][$i]['description']    = '偏好設定說明（常數）';
-//$modversion['config'][$i]['formtype']    = '輸入表單類型';
-//$modversion['config'][$i]['valuetype']    = '輸入值類型';
-//$modversion['config'][$i]['default']    = 預設值;
-//
-//$i++;
+$i=0;
+$modversion['config'][$i]['name']    = 'school_code';
+$modversion['config'][$i]['title']    = '_MI_NTPCOPENID_CONFIG_SCHOOLID';
+$modversion['config'][$i]['description']    = '_MI_NTPCOPENID_CONFIG_SCHOOLID_DESC';
+$modversion['config'][$i]['formtype']    = 'textbox';
+$modversion['config'][$i]['valuetype']    = 'text';
+$modversion['config'][$i]['default']    = '014569';
 
+$i++;
+$modversion['config'][$i]['name']    = 'officer_gid';
+$modversion['config'][$i]['title']    = '_MI_NTPCOPENID_CONFIG_OFFICER_GID';
+$modversion['config'][$i]['description']    = '_MI_NTPCOPENID_CONFIG_OFFICER_GID_DESC';
+$modversion['config'][$i]['formtype']    = 'group';
+$modversion['config'][$i]['valuetype']    = 'int';
+$modversion['config'][$i]['default']    = 2;
+
+$i++;
+$modversion['config'][$i]['name']    = 'reject_msg';
+$modversion['config'][$i]['title']    = '_MI_NTPCOPENID_CONFIG_REJECT_MSG';
+$modversion['config'][$i]['description']    = '_MI_NTPCOPENID_CONFIG_REJECT_MSG_DESC';
+$modversion['config'][$i]['formtype']    = 'textbox';
+$modversion['config'][$i]['valuetype']    = 'text';
+$modversion['config'][$i]['default']    = '您無法登入本校網站';
 //---搜尋---//
 //$modversion['hasSearch'] = 1;
 //$modversion['search']['file'] = "include/search.php";
