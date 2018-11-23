@@ -19,6 +19,10 @@ $openid = new LightOpenID(XOOPS_URL);
 
 switch ($op) {
     case 'check': // 多重身份，已選擇使用之身份
+        if (!isset($_SESSION['temp_user_data'])) {
+            redirectTo(XOOPS_URL);
+        }
+
         $idx = system_CleanVars($_REQUEST, 'idx', 0, 'int');
         $user_data = $_SESSION['temp_user_data'];
         $user_data['used_authInfo'] = $user_data['authInfos'][$idx];
@@ -185,6 +189,7 @@ function checkThenLogin($user_data) {
 
     // 拒絕登入則導回首頁
     if (!$canLogin) {
+        clearTempSession();
         redirect_header(XOOPS_URL, 5, $xoopsModuleConfig['reject_msg'], false);
     }
 
@@ -199,6 +204,16 @@ function checkThenLogin($user_data) {
  * @return bool
  */
 function loginGuard($data) {
+
+    // 所有啟用之登入規則
+    $rules = getAllRules();
+    // die(var_dump($rules));
+
+    // 空陣列 => 不設限，直接回傳 true
+    if (empty($rules)) {
+        return true;
+    }
+
     $result = false;
 
     // 只檢查選擇使用之身份
@@ -238,7 +253,7 @@ function loginGuard($data) {
 
     // 逐一檢查授權資訊是否符合登入規則，一有符合即回傳 true
     foreach ($authInfos as $id => $authInfo) {
-        $result = checkSingleAuthInfo($id, $authInfo);
+        $result = checkSingleAuthInfo($id, $authInfo, $rules);
         // echo "authInfo => $result <hr>";
 
         if ($result) {
@@ -250,12 +265,21 @@ function loginGuard($data) {
 }
 
 
-function checkSingleAuthInfo($id, $authInfo) {
+/**
+ * 檢查單一筆授權資訊
+ *
+ * @param $id
+ * @param $authInfo
+ * @param $rules
+ *
+ * @return bool
+ */
+function checkSingleAuthInfo($id, $authInfo, $rules) {
     $result = false;
 
     // 逐一檢查登入規則，first match
-    foreach (RULES as $rule) {
-        $result = checkSingleRule($rule, $id, $authInfo);
+    foreach ($rules as $rule) {
+        $result = checkSingleRule($rule['rule'], $id, $authInfo);
         // echo "rule => $result <br><br>";
 
         if ($result) {
@@ -329,6 +353,16 @@ function clearTempSession() {
 }
 
 
+/**
+ * 登入 user
+ *
+ * @param        $data
+ * @param string $url
+ * @param string $from
+ * @param string $sig
+ * @param string $bio
+ * @param string $occ
+ */
 function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '') {
     global $xoopsModuleConfig, $xoopsConfig;
     $member_handler = xoops_getHandler('member');
@@ -448,6 +482,7 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
 
         redirect_header($redirect_url, 1, sprintf("", $user->getVar('uname')), false);
     } else { // 登入失敗
+        clearTempSession();
         redirect_header(XOOPS_URL . '/user.php', 5, $xoopsAuth->getHtmlErrors());
     }
 }
@@ -594,7 +629,8 @@ function getPass($uname = "")
 
 
 
-
+// 處理自動群組
+// 待修改 *****************************
 function add2group($uid = "", $email = "", $SchoolCode = "", $JobName = "")
 {
     global $xoopsDB, $xoopsUser;

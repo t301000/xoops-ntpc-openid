@@ -39,6 +39,35 @@ if (!function_exists('redirectTo')) {
     }
 }
 
+if (!function_exists('getAllRules')) {
+    /**
+     * 取得所有啟用之登入規則
+     *
+     * @return array
+     */
+    function getAllRules()
+    {
+        global $xoopsDB;
 
+        $rules = [];
 
+        $sql = "SELECT 
+                    rule, sort
+                FROM
+                    {$xoopsDB->prefix('ntpc_openid_login_rules')}
+                WHERE
+                    enable = 1
+                ORDER BY 
+                    sort ASC";
+        $result = $xoopsDB->queryF($sql) or web_error($sql);
+
+        while (list($rule, $sort) = $xoopsDB->fetchRow($result)) {
+            $rule = json_decode($rule, true);
+            $sort = (int) $sort;
+            $rules[] = compact('sort', 'rule');
+        }
+
+        return $rules;
+    }
+}
 

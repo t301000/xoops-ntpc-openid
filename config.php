@@ -1,20 +1,4 @@
 <?php
-/**
- * 登入規則，每筆規則須為陣列
- * 逐一檢查，first match
- * 每筆規則中全部欄位檢查採 AND
- * 各筆規則檢查採 OR
- *
- * 可用欄位：
- *    校代碼 id => 字串
- *    身份 role => 字串 或 陣列
- */
-define('RULES', [
-    ['id' => '014568', 'role' => '教師'],
-    ['id' => '014569', 'role' => ['學生']],
-    ['id' => '014569', 'role' => '教師'],
-]);
-
 // 行政人員職稱，https://openid.ntpc.edu.tw/home/about/
 define('OFFICER', [
     '校長',

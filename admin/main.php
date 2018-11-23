@@ -18,6 +18,9 @@ switch ($op) {
     // header("location:{$_SERVER['PHP_SELF']}");
     // exit;
 
+    case 'getAllRules':
+        die(getJSONResponse(getAllRules()));
+
     default:
         show_content();
         break;
@@ -33,6 +36,15 @@ function show_content()
 {
     global $xoopsTpl;
 
-    $main = "登入規則頁面開發中";
+    $main = "登入規則設定施工中....";
     $xoopsTpl->assign('content', $main);
+}
+
+
+
+// 處理欲回傳之 json
+function getJSONResponse($data) {
+    header('Content-Type:application/json;charset=utf-8');
+
+    return json_encode($data, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
