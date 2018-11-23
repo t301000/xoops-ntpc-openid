@@ -11,43 +11,53 @@ require_once 'config.php';
 /*-----------執行動作判斷區----------*/
 include_once $GLOBALS['xoops']->path('/modules/system/include/functions.php');
 $op = system_CleanVars($_REQUEST, 'op', '', 'string');
-// $sn = system_CleanVars($_REQUEST, 'sn', 0, 'int');
 
 // 已登入則重導回首頁
 if ($xoopsUser) redirectTo(XOOPS_URL);
 
 $openid = new LightOpenID(XOOPS_URL);
 
-switch ($openid->mode) {
-    case 'id_res':
-        if ($openid->validate()) {
-            // 驗證成功
-            $user_data = getOpenidUserData($openid);
-            // ddd($user_data);
-            $canLogin = loginGuard($user_data);
-            // echo "canLogin => $canLogin";
+switch ($op) {
+    case 'check': // 多重身份，已選擇使用之身份
+        $idx = system_CleanVars($_REQUEST, 'idx', 0, 'int');
+        $user_data = $_SESSION['temp_user_data'];
+        $user_data['used_authInfo'] = $user_data['authInfos'][$idx];
 
-            // 拒絕登入則導回首頁
-            if (!$canLogin) {
-                redirect_header(XOOPS_URL, 3, REJECTED_MESSAGE, false);
-            }
-
-            login_user($user_data);
-
-        } else {
-            // 驗證失敗
-            redirectTo(XOOPS_URL);
-        }
-        break;
-
-    case 'cancel':
-        redirectTo(XOOPS_URL);
+        checkThenLogin($user_data);
         break;
 
     default:
-        flow_start();
-        break;
+        switch ($openid->mode) {
+            case 'id_res':
+                if ($openid->validate()) {
+                    // 驗證成功
+                    $user_data = getOpenidUserData();
+                    // ddd($user_data);
+
+                    // 若有多重身份
+                    if (count($user_data['authInfos']) > 1) {
+                        $_SESSION['temp_user_data'] = $user_data;
+                        show_authInfo_table();
+                    } else { // 單一身份
+                        checkThenLogin($user_data);
+                    }
+                } else {
+                    // 驗證失敗
+                    redirectTo(XOOPS_URL);
+                }
+                break;
+
+            case 'cancel':
+                redirectTo(XOOPS_URL);
+                break;
+
+            default:
+                clearTempSession();
+                flow_start();
+                break;
+        }
 }
+
 
 /*-----------秀出結果區--------------*/
 include_once XOOPS_ROOT_PATH . '/footer.php';
@@ -63,6 +73,31 @@ function show_content()
     $main = "模組開發中";
     $xoopsTpl->assign('content', $main);
 }
+
+//顯示身份選擇頁面
+function show_authInfo_table()
+{
+    global $xoopsTpl;
+
+    $user_data = $_SESSION['temp_user_data'];
+    $infos = $user_data['authInfos'];
+    $list = '';
+    foreach ($infos as $idx => $info) {
+        $href = "{$_SERVER['PHP_SELF']}?op=check&idx=$idx";
+        $list .= '<a class="btn btn-block btn-link" style="font-size: 18px;margin-bottom: 15px;" href="' . $href . '">';
+        $list .= "{$info['name']} {$info['role']} " . implode(',', $info['groups']);
+        $list .= "</a>";
+    }
+    $main = <<<INFOS
+        <div style="width: 60%; min-width: 400px; border: 1px solid #d9edf7; border-radius: 10px; overflow: hidden;" class="center-block">
+            <h2 class="text-center bg-info" style="margin-top: 0; margin-bottom: 30px; padding: 15px;">選擇登入身份</h2>
+            $list
+        </div>        
+INFOS;
+
+    $xoopsTpl->assign('content', $main);
+}
+
 
 /**
  * 啟動 OpenID 流程
@@ -135,6 +170,25 @@ function getOpenidUserData() {
      */
 }
 
+
+/**
+ * 檢查登入規則，符合則登入
+ *
+ * @param $user_data
+ */
+function checkThenLogin($user_data) {
+    $canLogin = loginGuard($user_data);
+    // echo "canLogin => $canLogin";
+    // die;
+
+    // 拒絕登入則導回首頁
+    if (!$canLogin) {
+        redirect_header(XOOPS_URL, 5, REJECTED_MESSAGE, false);
+    }
+
+    login_user($user_data);
+}
+
 /**
  * 檢查是否能登入
  *
@@ -145,8 +199,13 @@ function getOpenidUserData() {
 function loginGuard($data) {
     $result = false;
 
+    // 只檢查選擇使用之身份
+    $authInfo_check = isset($data['used_authInfo']) ? $data['used_authInfo'] : $data['authInfos'][0];
+    // ddd($authInfo_check);
+
     // 整理授權資訊，將屬於同一所學校之 data 集中，以校代碼為 key
-    $authInfos = array_reduce($data['authInfos'], function ($accu, $item) {
+    // 主要用於多重身份
+    $authInfos = array_reduce(array($authInfo_check), function ($accu, $item) {
         $accu[$item['id']]['name'] = $item['name'];
         if (!isset($accu[$item['id']]['role'])) $accu[$item['id']]['role'] = [];
         if (!isset($accu[$item['id']]['title'])) $accu[$item['id']]['title'] = [];
@@ -166,18 +225,35 @@ function loginGuard($data) {
      *         'role' => array(2)
      *              string UTF-8(2) "教師"
      *              string UTF-8(2) "家長"
- *              'title' => array(2)
+     *         'title' => array(2)
      *              string UTF-8(5) "教師兼組長"
      *              string UTF-8(2) "其他"
- *              'groups' => array(2)
+     *         'groups' => array(2)
      *              string UTF-8(4) "資訊組長"
      *              string UTF-8(2) "其他"
      *
      */
 
+    // 逐一檢查授權資訊是否符合登入規則，一有符合即回傳 true
+    foreach ($authInfos as $id => $authInfo) {
+        $result = checkSingleAuthInfo($id, $authInfo);
+        // echo "authInfo => $result <hr>";
+
+        if ($result) {
+            return true;
+        }
+    }
+
+    return $result;
+}
+
+
+function checkSingleAuthInfo($id, $authInfo) {
+    $result = false;
+
     // 逐一檢查登入規則，first match
     foreach (RULES as $rule) {
-        $result = checkSingleRule($rule, $authInfos);
+        $result = checkSingleRule($rule, $id, $authInfo);
         // echo "rule => $result <br><br>";
 
         if ($result) {
@@ -197,13 +273,13 @@ function loginGuard($data) {
  *
  * @return bool
  */
-function checkSingleRule(array $rule, $authInfos) {
+function checkSingleRule(array $rule, $id, $authInfo) {
     $result = false;
 
     // 逐一檢查欄位，有 false 即回傳 false
     foreach ($rule as $k => $v) {
         $method = 'check_' .$k;
-        $result = $method($rule, $authInfos);
+        $result = $method($rule, $id, $authInfo);
         // echo "$k = $v => $result <br>";
 
         if (!$result) {
@@ -222,8 +298,8 @@ function checkSingleRule(array $rule, $authInfos) {
  *
  * @return bool
  */
-function check_id($rule, $authInfos) {
-    return array_key_exists($rule['id'], $authInfos);
+function check_id($rule, $id, $authInfo) {
+    return $rule['id'] === $id;
 }
 
 /**
@@ -234,30 +310,23 @@ function check_id($rule, $authInfos) {
  *
  * @return bool
  */
-function check_role($rule, $authInfos) {
+function check_role($rule, $id, $authInfo) {
     $roles = is_array($rule['role']) ? $rule['role'] : array($rule['role']);
 
-    // 有指定校代碼，則只檢查該校之授權資訊
-    if (isset($rule['id'])) {
-        return count(array_intersect($roles, $authInfos[$rule['id']]['role'])) > 0;
-    }
-
-    // 沒有指定校代碼，則逐一檢查各筆授權資訊
-    $result = false;
-    foreach ($authInfos as $authInfo) {
-        $result = count(array_intersect($roles, $authInfo['role'])) > 0;
-        if ($result) {
-            return true;
-        }
-    }
-
-    return $result;
+    return count(array_intersect($roles, $authInfo['role'])) > 0;
 }
 
 
-
+/**
+ * 清除暫存之 session
+ */
+function clearTempSession() {
+    if (isset($_SESSION['temp_user_data'])) {
+        unset($_SESSION['temp_user_data']);
+    }
+}
 
 
 function login_user($data) {
-
+    redirect_header(XOOPS_URL, 5, "passed login check", false);
 }
