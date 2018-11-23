@@ -18,6 +18,36 @@ define('RULES', [
 // 被拒絕登入之訊息
 define('REJECTED_MESSAGE', '您無法登入本校網站');
 
+// 行政人員職稱，https://openid.ntpc.edu.tw/home/about/
+define('OFFICER', [
+    '校長',
+    '教務主任',
+    '學務主任',
+    '總務主任',
+    '輔導主任',
+    '人事主任',
+    '會計主任',
+    '教學組長',
+    '註冊組長',
+    '資訊組長',
+    '設備組長',
+    '訓育組長',
+    '生活教育組長',
+    '體育組長',
+    '衛生組長',
+    '文書組長',
+    '出納組長',
+    '事務組長',
+    '輔導組長',
+    '資料組長',
+    '特教組長',
+    '校護',
+    '幹事',
+]);
+
+// 行政群組 id
+define('OFFICER_GID', 99);
+
 // 向 OpenID 要求取回之欄位
 define('OPENID_REQUIRED', [
     // 'namePerson/friendly', // 暱稱
