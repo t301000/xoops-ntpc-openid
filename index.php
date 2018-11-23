@@ -334,19 +334,21 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
     $uname = trim($data['openid']) . "_ntpc";
     $email = trim($data['email']);
 
-    // 檢查 user 是否存在
-    $user_existed = $member_handler->getUserCount(new Criteria('uname', $uname)) > 0;
-    if (!$user_existed) {
-        // 不存在 => 新增，並取得 uid
-        $uid = createUser($data);
-    } else {
-        // 存在 => 取得 uid
-        $uid = ($member_handler->getUsers(new Criteria('uname', $uname)))[0]->uid();
-    }
+    // 取得 uid
+    $uid = get_uid($uname, $data, false); // 個人帳號
     // ddd($uid);
 
+    // 若為行政，則替換為行政帳號
+    $officer = array_intersect($data['used_authInfo']['groups'], OFFICER);
+    if (count($officer) > 0) {
+        $uname = $officer[0]; // 取第一個
+        $uid = get_uid($uname, $data, true); // 行政帳號 uid
+        // ddd($uid);
+    }
 
     /******* 登入 user *******/
+    // 一般以個人帳號登入
+    // 行政以行政帳號登入
     $pass = getPass($uname);
 
     if ($uname == '' || $pass == '') {
@@ -441,10 +443,36 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
     }
 }
 
+
+    /**
+     * 取得 uid，個人帳號 或 行政帳號
+     *
+     * @param      $uname
+     * @param      $data
+     * @param bool $officer 是否為行政帳號
+     *
+     * @return mixed
+     */
+    function get_uid($uname, $data, $officer = false) {
+    $member_handler = xoops_getHandler('member');
+    $user_existed = $member_handler->getUserCount(new Criteria('uname', $uname)) > 0;
+    if (!$user_existed) {
+        // 不存在 => 新增，並取得 uid
+        $data['uname'] = $uname;
+        $uid = createUser($data, $officer);
+    } else {
+        // 存在 => 取得 uid
+        $uid = ($member_handler->getUsers(new Criteria('uname', $uname)))[0]->uid();
+    }
+
+    return $uid;
+}
+
 /**
  * 建立帳號，回傳 uid
  *
- * @param $data user data from openid
+ * @param        $data user data from openid
+ * @param bool   $officer 是否為行政帳號
  * @param string $url
  * @param string $from
  * @param string $sig
@@ -453,18 +481,19 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
  * @param string $aim
  * @param string $yim
  * @param string $msnm
+ *
  * @return mixed
  */
-function createUser($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '', $aim = '', $yim = '', $msnm = '') {
+function createUser($data, $officer = false, $url = '', $from = '', $sig = '', $bio = '', $occ = '', $aim = '', $yim = '', $msnm = '') {
     global $xoopsConfig, $xoopsDB;
 
     $member_handler = xoops_getHandler('member');
 
-    $uname = trim($data['openid']) . "_ntpc";
+    $uname = trim($data['uname']);
     $email = trim($data['email']);
-    $name = trim($data['name']);
+    $name = $officer ? $uname : trim($data['name']);
+    $JobName = $officer ? '行政' : trim($data['used_authInfo']['role']);
     $SchoolCode = trim($data['used_authInfo']['id']);
-    $JobName = trim($data['used_authInfo']['role']);
 
 
     $pass    = randStr(128);
@@ -506,6 +535,12 @@ function createUser($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
     if ($uid) {
         // 加入註冊會員群組
         $sql = "INSERT INTO `" . $xoopsDB->prefix('groups_users_link') . "`  (groupid, uid) VALUES  (2, " . $uid . ")";
+
+        // 若為行政帳號，加入行政群組
+        if ($officer) {
+            $sql .= ", (" . OFFICER_GID . ", $uid)";
+        }
+
         $xoopsDB->queryF($sql) or web_error($sql);
 
         // 紀錄隨機密碼
