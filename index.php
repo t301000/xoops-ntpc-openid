@@ -340,7 +340,7 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
 
     // 若為行政，則替換為行政帳號
     $officer = array_intersect($data['used_authInfo']['groups'], OFFICER);
-    if (count($officer) > 0) {
+    if ($is_officer = count($officer) > 0) {
         $uname = $officer[0]; // 取第一個
         $uid = get_uid($uname, $data, true); // 行政帳號 uid
         // ddd($uid);
@@ -397,14 +397,16 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
         $user->setVar('last_login', time());
 
         // 若為行政帳號登入，則更新 email
-        if (count($officer) > 0) {
+        if ($is_officer) {
             $user->setVar('email', $data['email']);
+        } else {
+            // 非行政，則更新身份
+            $user->setVar("user_icq", $JobName);
         }
 
         $user->setVar("user_from", $from);
         $user->setVar("url", formatURL($url));
         $user->setVar("user_sig", $sig);
-        $user->setVar("user_icq", $JobName);
         $user->setVar("bio", $bio);
         if ($SchoolCode) {
             $user->setVar("user_occ", $occ);
