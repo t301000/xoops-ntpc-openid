@@ -41,30 +41,35 @@ if (!function_exists('redirectTo')) {
 
 if (!function_exists('getAllRules')) {
     /**
-     * 取得所有啟用之登入規則
+     * 取得所有登入規則
+     *
+     * @param bool $only_enabled 是否只有啟用的規則
      *
      * @return array
      */
-    function getAllRules()
+    function getAllRules($only_enabled = true)
     {
         global $xoopsDB;
 
         $rules = [];
 
         $sql = "SELECT 
-                    rule, sort
+                    sn, rule, sort, enable
                 FROM
-                    {$xoopsDB->prefix('ntpc_openid_login_rules')}
-                WHERE
-                    enable = 1
-                ORDER BY 
-                    sort ASC";
+                    {$xoopsDB->prefix('ntpc_openid_login_rules')}";
+        $sql .= $only_enabled ?
+                " WHERE
+                    enable = 1" : '';
+        $sql .=" ORDER BY 
+                    sort ASC, sn ASC";
         $result = $xoopsDB->queryF($sql) or web_error($sql);
 
-        while (list($rule, $sort) = $xoopsDB->fetchRow($result)) {
+        while (list($sn, $rule, $sort, $enable) = $xoopsDB->fetchRow($result)) {
+            $sn = (int) $sn;
             $rule = json_decode($rule, true);
             $sort = (int) $sort;
-            $rules[] = compact('sort', 'rule');
+            $enable = (int) $enable;
+            $rules[] = compact('sn', 'sort', 'rule', 'enable');
         }
 
         return $rules;
@@ -73,16 +78,35 @@ if (!function_exists('getAllRules')) {
 
 if (!function_exists('getJSONResponse')) {
     /**
-     * 處理欲回傳之 json
+     * 將資料以 json 格式回傳，設定 header Content-Type
      *
-     * @param $data
+     * @param      $data
+     * @param bool $number_check 是否處理將 字串型的數字 轉為 數字
      *
      * @return false|string
      */
-    function getJSONResponse($data)
+    function getJSONResponse($data, $number_check = false)
     {
         header('Content-Type:application/json;charset=utf-8');
 
-        return json_encode($data, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        return getJSONString($data, $number_check);
+    }
+}
+
+if (!function_exists('getJSONString')) {
+    /**
+     * 將資料以 json_encode 轉成 json string
+     *
+     * @param      $data
+     * @param bool $number_check 是否處理將 字串型的數字 轉為 數字
+     *
+     * @return false|string
+     */
+    function getJSONString($data, $number_check = false)
+    {
+        $params = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+        $params = $number_check ? JSON_NUMERIC_CHECK | $params : $params;
+
+        return json_encode($data, $params);
     }
 }

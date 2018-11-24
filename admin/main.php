@@ -19,7 +19,14 @@ switch ($op) {
     // exit;
 
     case 'getAllRules':
-        die(getJSONResponse(getAllRules()));
+        die(getJSONResponse(getAllRules(false), false));
+
+    case 'addRule':
+        $data = file_get_contents("php://input");
+
+        $result = store(json_decode($data, true));
+
+        die(getJSONResponse(compact('result')));
 
     default:
         show_content();
@@ -34,12 +41,26 @@ include_once 'footer.php';
 //顯示預設頁面內容
 function show_content()
 {
-    global $xoopsTpl;
+    global $xoopsTpl, $xoopsModuleConfig;
 
-    $main = "登入規則設定施工中....";
-    $xoopsTpl->assign('content', $main);
+    $data['schoolCode'] = $xoopsModuleConfig['school_code'];
+    $xoopsTpl->assign('data', $data);
 }
 
+function store($data) {
+    global $xoopsDB;
 
+    $rule = getJSONString($data, false);
+
+    $sql = "INSERT INTO {$xoopsDB->prefix('ntpc_openid_login_rules')} (rule) VALUES ('{$rule}')";
+    $xoopsDB->query($sql) or web_error($sql);
+    $sn = $xoopsDB->getInsertId();
+
+    $result['sn'] = $sn;
+    $result['enable'] = 1;
+    $result['rule'] = $data;
+
+    return $result;
+}
 
 
