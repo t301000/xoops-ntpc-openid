@@ -17,49 +17,15 @@ if ($xoopsUser) redirectTo(XOOPS_URL);
 
 $openid = new LightOpenID(XOOPS_URL);
 
-switch ($op) {
-    case 'check': // 多重身份，已選擇使用之身份
-        if (!isset($_SESSION['temp_user_data'])) {
-            redirectTo(XOOPS_URL);
-        }
 
-        $idx = system_CleanVars($_REQUEST, 'idx', 0, 'int');
-        $user_data = $_SESSION['temp_user_data'];
-        $user_data['used_authInfo'] = $user_data['authInfos'][$idx];
-
-        checkThenLogin($user_data);
-        break;
-
-    default:
-        switch ($openid->mode) {
-            case 'id_res':
-                if ($openid->validate()) {
-                    // 驗證成功
-                    $user_data = getOpenidUserData();
-                    // ddd($user_data);
-
-                    // 若有多重身份
-                    if (count($user_data['authInfos']) > 1) {
-                        $_SESSION['temp_user_data'] = $user_data;
-                        show_authInfo_table();
-                    } else { // 單一身份
-                        checkThenLogin($user_data);
-                    }
-                } else {
-                    // 驗證失敗
-                    redirectTo(XOOPS_URL);
-                }
-                break;
-
-            case 'cancel':
-                redirectTo(XOOPS_URL);
-                break;
-
-            default:
-                clearTempSession();
-                flow_start();
-                break;
-        }
+if (FAKE_MODE) {
+    fake_mode($op);
+} else {
+    try {
+        normal_mode($op);
+    } catch (Exception $e) {
+        ddd($e->getMessage());
+    }
 }
 
 
@@ -68,6 +34,135 @@ include_once XOOPS_ROOT_PATH . '/footer.php';
 
 
 /*-----------function區--------------*/
+
+
+/**
+ * 測試模式，略過正常 OpenID 流程，使用假資料
+ *
+ * @param $op
+ */
+function fake_mode($op) {
+    switch ($op) {
+        case 'check':
+            // if (!isset($_SESSION['temp_user_data'])) {
+            //     redirectTo(XOOPS_URL);
+            // }
+
+            $idx = system_CleanVars($_REQUEST, 'idx', 0, 'int');
+            $uidx = system_CleanVars($_REQUEST, 'uidx', 0, 'int');
+            $user_data = FAKE_USERS[$uidx];
+            $user_data['used_authInfo'] = $user_data['authInfos'][$idx];
+
+            checkThenLogin($user_data);
+            break;
+
+        default:
+            showFakeUserList();
+            break;
+    }
+}
+
+function showFakeUserList() {
+    global $xoopsTpl;
+
+    $list = '';
+    foreach (FAKE_USERS as $uidx => $person) {
+        $list .= getListItem($uidx, $person);
+    }
+    $main = <<<INFOS
+        <div class="center-block text-center" style="width: 80%;">
+          <h2>FAKE USERS LIST</h2>
+          <div style="display: flex;">$list</div>
+        </div>
+INFOS;
+
+    $xoopsTpl->assign('content', $main);
+}
+
+function getListItem($uidx, $data) {
+    $authInfos='';
+    foreach ($data['authInfos'] as $idx => $info) {
+        $authInfos.="<hr>";
+
+        $authInfos.='<a href="' . $_SERVER['PHP_SELF'] . '?op=check&uidx=' . $uidx . '&idx=' . $idx . '">';
+            $authInfos.="<div>{$info['id']}</div>";
+            $authInfos.="<div>{$info['role']}</div>";
+            $authInfos.="<div>{$info['title']}</div>";
+
+            $authInfos.= '<div style="background-color: #feeaa5">';
+                foreach ($info['groups'] as $item) {
+                    $authInfos .= $item;
+                    $authInfos .= '<br>';
+                }
+            $authInfos.='</div>';
+        $authInfos.='</a>';
+    }
+    return <<<LISTITEM
+        <div style="border: 1px solid #b8b8b8; flex: 1; margin: 5px;">
+          {$data['name']}<br>
+          {$data['openid']}<br>
+          $authInfos
+        </div>
+LISTITEM;
+
+}
+
+/**
+ * 正常模式
+ *
+ * @param $op
+ *
+ * @throws \ErrorException
+ */
+function normal_mode($op) {
+    global $openid;
+
+    switch ($op) {
+        case 'check': // 多重身份，已選擇使用之身份
+            if (!isset($_SESSION['temp_user_data'])) {
+                redirectTo(XOOPS_URL);
+            }
+
+            $idx = system_CleanVars($_REQUEST, 'idx', 0, 'int');
+            $user_data = $_SESSION['temp_user_data'];
+            $user_data['used_authInfo'] = $user_data['authInfos'][$idx];
+
+            checkThenLogin($user_data);
+            break;
+
+        default:
+            switch ($openid->mode) {
+                case 'id_res':
+                    if ($openid->validate()) {
+                        // 驗證成功
+                        $user_data = getOpenidUserData();
+                        // ddd($user_data);
+
+                        // 若有多重身份
+                        if (count($user_data['authInfos']) > 1) {
+                            $_SESSION['temp_user_data'] = $user_data;
+                            show_authInfo_table();
+                        } else { // 單一身份
+                            checkThenLogin($user_data);
+                        }
+                    } else {
+                        // 驗證失敗
+                        redirectTo(XOOPS_URL);
+                    }
+                    break;
+
+                case 'cancel':
+                    redirectTo(XOOPS_URL);
+                    break;
+
+                default:
+                    clearTempSession();
+                    flow_start();
+                    break;
+            }
+    }
+}
+
 
 /**
  * 顯示身份選擇頁面
@@ -202,6 +297,7 @@ function loginGuard($data) {
     $result = false;
 
     // 只檢查選擇使用之身份
+    // 單一身份者取第一筆授權資訊
     $authInfo_check = isset($data['used_authInfo']) ? $data['used_authInfo'] : $data['authInfos'][0];
     // ddd($authInfo_check);
 

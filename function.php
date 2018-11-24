@@ -71,3 +71,18 @@ if (!function_exists('getAllRules')) {
     }
 }
 
+if (!function_exists('getJSONResponse')) {
+    /**
+     * 處理欲回傳之 json
+     *
+     * @param $data
+     *
+     * @return false|string
+     */
+    function getJSONResponse($data)
+    {
+        header('Content-Type:application/json;charset=utf-8');
+
+        return json_encode($data, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+}
