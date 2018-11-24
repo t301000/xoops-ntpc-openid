@@ -390,7 +390,7 @@ function checkSingleAuthInfo($id, $authInfo, $rules) {
  * @return bool
  */
 function checkSingleRule(array $rule, $id, $authInfo) {
-    $result = false;
+    $result = true;
 
     // 逐一檢查欄位，有 false 即回傳 false
     foreach ($rule as $k => $v) {
@@ -498,7 +498,10 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
 
         // 處理群組
         //add2group($user->getVar('uid'), $email, $SchoolCode, $JobName);
-        //add2group($uid, $email, $SchoolCode, $JobName);
+        if (syncGroup($user, $data, $is_officer)) {
+            // 若群組有更動，則重新登入 user
+            $user = $xoopsAuth->authenticate($uname, $pass);
+        }
 
         if (0 == $user->getVar('level')) {
             redirect_header(XOOPS_URL . '/index.php', 5, _MD_TNOPENID_NOACTTPADM);
@@ -720,7 +723,7 @@ function getPass($uname = "")
 
 
 // 處理自動群組
-// 待修改 *****************************
+/*
 function add2group($uid = "", $email = "", $SchoolCode = "", $JobName = "")
 {
     global $xoopsDB, $xoopsUser;
@@ -767,4 +770,121 @@ function add2group($uid = "", $email = "", $SchoolCode = "", $JobName = "")
             }
         }
     }
+}
+*/
+
+/**
+ * 同步調整群組，回傳是否須重新登入 user
+ *
+ * @param \XoopsUser $user
+ * @param            $data
+ * @param bool       $is_officer
+ *
+ * @return bool
+ */
+function syncGroup(XoopsUser $user, $data, $is_officer = false) {
+    global $xoopsModuleConfig, $xoopsDB;
+
+    // 是否須重新登入，群組有變更則須重新登入 user
+    $need_relogin = false;
+
+    // 群組分配規則
+    $group_rules = GROUP_RULES;
+
+    // 目前持有的群組 id 陣列，轉字串為數字
+    $gids_current = array_map(function ($gid) {
+        return (int)$gid;
+    }, $user->getGroups());
+
+    // 基礎必備的 gid
+    // 行政帳號附加行政群組 gid
+    $base_gids = $is_officer ? [2, $xoopsModuleConfig['officer_gid']] : [2];
+
+    // 收集應具備的群組 id
+    $gids = array_reduce($group_rules, function ($accu, $rule) use ($data) {
+        $gid = checkGroupRule($data, $rule);
+        if ($gid) {
+            $accu[] = $gid;
+        }
+
+        return $accu;
+    }, $base_gids);
+
+    $gids_to_add = array_diff($gids, $gids_current);
+    $gids_to_remove = array_diff($gids_current, $gids);
+
+    // 新增群組
+    if (count($gids_to_add) > 0) {
+        $values = array_map(function ($gid) use ($user) {
+            return "($gid, {$user->uid()})";
+        }, $gids_to_add);
+        $values = implode(', ', $values);
+
+        $sql = "INSERT INTO
+                    {$xoopsDB->prefix('groups_users_link')}
+                    (groupid, uid)
+                VALUES
+                    {$values}";
+        $xoopsDB->queryF($sql) or web_error($sql);
+
+        $need_relogin = true;
+    }
+
+    // 移除群組
+    if (count($gids_to_remove) > 0) {
+        $ids = implode(', ', $gids_to_remove);
+        $sql = "DELETE FROM 
+                    {$xoopsDB->prefix('groups_users_link')}
+                WHERE 
+                    uid = {$user->uid()}
+                    AND 
+                    groupid IN ({$ids})";
+        $xoopsDB->queryF($sql) or web_error($sql);
+
+        $need_relogin = true;
+    }
+
+    return $need_relogin;
+}
+
+
+/**
+ * 檢查一條群組分配規則，符合則回傳 gid，不符合則回傳 0
+ *
+ * @param $data
+ * @param $rule
+ *
+ * @return int
+ */
+function checkGroupRule($data, $rule) {
+    // 攤平陣列，只取需要的欄位
+    $data_to_check['openid'] = $data['openid'];
+    $data_to_check['email'] = $data['email'];
+    $data_to_check['id'] = $data['used_authInfo']['id'];
+    $data_to_check['role'] = $data['used_authInfo']['role'];
+    $data_to_check['title'] = $data['used_authInfo']['title'];
+    $data_to_check['groups'] = $data['used_authInfo']['groups']; // 為陣列
+
+    $gid = $rule['gid'];
+    unset($rule['gid']);
+
+    $result = true;
+    // 逐一檢查各欄位，false first
+    foreach ($rule as $k => $v) {
+        if ($k === 'groups') {
+            // groups 採陣列交集比對
+            $v = is_array($v) ? $v : [$v];
+            $result = count(array_intersect($data_to_check[$k], $v)) > 0;
+        } else {
+            // 其餘採字串比對
+            $result = $data_to_check[$k] === $v;
+        }
+
+        if (!$result) {
+            // 不符合，回傳 0
+            return 0;
+        }
+    }
+
+    return $gid;
 }
