@@ -69,16 +69,9 @@ include_once XOOPS_ROOT_PATH . '/footer.php';
 
 /*-----------function區--------------*/
 
-//顯示預設頁面內容
-function show_content()
-{
-    global $xoopsTpl;
-
-    $main = "模組開發中";
-    $xoopsTpl->assign('content', $main);
-}
-
-//顯示身份選擇頁面
+/**
+ * 顯示身份選擇頁面
+ */
 function show_authInfo_table()
 {
     global $xoopsTpl;
@@ -204,15 +197,7 @@ function checkThenLogin($user_data) {
  * @return bool
  */
 function loginGuard($data) {
-
-    // 所有啟用之登入規則
-    $rules = getAllRules();
-    // die(var_dump($rules));
-
-    // 空陣列 => 不設限，直接回傳 true
-    if (empty($rules)) {
-        return true;
-    }
+    global $xoopsModuleConfig;
 
     $result = false;
 
@@ -250,6 +235,15 @@ function loginGuard($data) {
      *              string UTF-8(2) "其他"
      *
      */
+
+    // 所有啟用之登入規則
+    $rules = getAllRules();
+    // die(var_dump($rules));
+
+    // 空陣列 => 預設檢查校代碼
+    if (empty($rules)) {
+        $rules[] = ['id' => $xoopsModuleConfig['school_code']];
+    }
 
     // 逐一檢查授權資訊是否符合登入規則，一有符合即回傳 true
     foreach ($authInfos as $id => $authInfo) {
