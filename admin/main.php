@@ -36,6 +36,13 @@ switch ($op) {
 
         die(getJSONResponse(compact('result')));
 
+    case 'toggleRuleActive':
+        $sn = system_CleanVars($_REQUEST, 'sn', 0, 'int');
+
+        $result = toggleActive($sn);
+
+        die(getJSONResponse(compact('result')));
+
     case 'delRule':
         $sn = system_CleanVars($_REQUEST, 'sn', 0, 'int');
 
@@ -89,6 +96,18 @@ function update($data) {
     $xoopsDB->query($sql) or web_error($sql);
 
     return getRuleBySN($data['sn']);
+}
+
+function toggleActive($sn) {
+    global $xoopsDB;
+
+    $rule = getRuleBySN($sn);
+    $enable = (int) $rule['enable'] ? 0 : 1;
+
+    $sql = "UPDATE `{$xoopsDB->prefix('ntpc_openid_login_rules')}` SET `enable` = '{$enable}' WHERE `sn` = '{$sn}'";
+    $result = $xoopsDB->queryF($sql) or web_error($sql);
+
+    return $result;
 }
 
 function destroy($sn) {
