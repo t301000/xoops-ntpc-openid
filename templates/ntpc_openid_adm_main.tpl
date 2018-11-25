@@ -14,9 +14,7 @@
   }
 
   tr > th,
-  tr > td:first-child,
-  tr > td:last-child,
-  tr > td:nth-child(3) {
+  tr > td:not(:nth-child(2)) {
     text-align: center;
   }
 
@@ -89,7 +87,7 @@
           <table class="table table-hover">
             <thead>
               <tr>
-                <th class="bg-primary">順序</th>
+                <th class="bg-primary">#</th>
                 <th class="bg-primary">規則</th>
                 <th class="bg-primary">管理</th>
                 <th class="bg-primary">啟用</th>
@@ -117,8 +115,10 @@
   https://www.jsviews.com/#jsrapi
 -->
 <script id="myTmpl" type="text/x-jsrender">
-  <tr id="tr-{{:sn}}">
-    <td>{{:sort}}</td>
+  <tr id="sn_{{:sn}}">
+    <td>
+      <img src="<{$xoops_url}>/modules/ntpc_openid/images/icons/menu.png" style="cursor: move;margin:0px 4px;" alt="<{$smarty.const._TAD_SORTABLE}>" title="<{$smarty.const._TAD_SORTABLE}>">
+    </td>
     <td>
       {{if rule.id}}代碼：{{:rule.id}} {{/if}} |
       {{if rule.role}}身分：{{:rule.role}} {{/if}}
@@ -142,22 +142,23 @@
 <script>
 ;(function($){
 
-    const baseURL = document.URL;
+    const baseURL = document.URL; // admin/main.php 之 URL
+
     const tmpl = $.templates("#myTmpl");
     const list = $("#list");
 
     const msgBlock = $('#msg'); // 訊息區塊
 
-    const schoolCodeInput = $('#school-code');
+    const schoolCodeInput = $('#school-code'); // 校代碼輸入
     const defaultSchoolCode = schoolCodeInput.val(); // 預設校代碼
 
-    const rolesSelect = $('#roles');
+    const rolesSelect = $('#roles'); // 身分多選選單
 
-    const addEditBtn = $('#add-edit-btn');
+    const addEditBtn = $('#add-edit-btn'); // 新增/更新 按鈕
     addEditBtn.on('click', addEditBtnHandler);
 
-    const cancelBtn = $('#cancel-btn');
-    cancelBtn.on('click', cancelBtnHandler);
+    const cancelBtn = $('#cancel-btn'); // 取消按鈕
+    cancelBtn.on('click', resetAll);
 
     let editSN = null; // 旗標：紀錄編輯的資料 sn
     let processing = false; // 旗標：是否處理中
@@ -168,13 +169,14 @@
     $.get(`${baseURL}?op=getAllRules`)
       .then(rules => generateList(rules))
       .fail(err => showMsg(err, '取得所有規則時發生錯誤'))
-      .done(null);
+      .done(makeListSortable); // 啟動拖拉排序
 
     /********* function 區 *********/
 
+    // 產生表格清單
     function generateList(rules) {
         allRules = rules;
-        /* 單一條 rule ==> {sn: 2, sort: 1, rule: {id: "014568", role: ["教師", "學生"]}, enable: 1} */
+        /* 單一條 rule ==> {sn: 2, rule: {id: "014568", role: ["教師", "學生"]}, enable: 1} */
 
         const html = rules.map(item => tmpl.render(item))
             .reduce((accu, item) => accu+=item, '');
@@ -185,25 +187,29 @@
         $('.cbox').on('click', checkboxHandler);
     }
 
-    function cancelBtnHandler() {
+    // 重設 ui 與 旗標狀態
+    function resetAll() {
         addEditBtn.text('新增').removeClass('btn-warning');
-        $(`#tr-${editSN}`).removeClass('selected');
+        $(`#sn_${editSN}`).removeClass('selected');
         editSN = null;
+        processing = false;
         clearAllRuleFormInput();
     }
 
+    // 重設輸入表單
     function clearAllRuleFormInput() {
         processing = false;
         schoolCodeInput.val(defaultSchoolCode);
         rolesSelect.val('');
     }
 
+    // 編輯按鈕 handler
     function editBtnHandler() {
         if (processing) return;
         // console.log('edit => ', $(this).data('sn'));
         editSN = $(this).data('sn');
 
-        $(`#tr-${editSN}`).addClass('selected');
+        $(`#sn_${editSN}`).addClass('selected');
 
         // 找出編輯的 rule
         const editedRule = allRules.find(rule => rule.sn === editSN );
@@ -213,6 +219,7 @@
         rolesSelect.val(editedRule.rule.role);
     }
 
+    // 刪除按鈕 handler
     function delBtnHandler() {
         if (processing) return;
         // console.log('del => ',$(this).data('sn'));
@@ -221,6 +228,7 @@
         }
     }
 
+    // 啟用 / 停用 checkbox handler
     function checkboxHandler() {
         console.log('toggle active => ', this.value);
         processing = true;
@@ -230,18 +238,20 @@
              // 改 checkbox checked
          })
          .fail(err => showMsg(err, '規則 啟用 / 停用 時發生錯誤'))
-         .done(cancelBtnHandler);
+         .done(resetAll);
     }
 
+    // 新增 / 編輯 按鈕 handler
     function addEditBtnHandler() {
         if (processing) return;
 
-        const id = schoolCodeInput.val();
+        const id = schoolCodeInput.val().trim();
         const role = rolesSelect.val();
         let rule = {};
         let data;
 
         if (id === '' && role.length === 0) {
+            // 校代碼為空 且 未選擇身分
             return;
         }
 
@@ -254,9 +264,12 @@
         }
 
         // console.log(rule);
+
+        // 執行 更新 或 新增
         editSN ? updateRule({sn: editSN, rule}) : addRule(rule);
     }
 
+    // 新增表格清單項目
     function newListItem(item) {
         // console.log(item);
         allRules.push(item); // 加入新規則
@@ -269,13 +282,14 @@
         processing = false;
     }
 
+    // 更新表格清單項目
     function updateListItem(item) {
         // console.log('after update => ', item);
         // 替換舊規則
         const idx = allRules.findIndex(rule => rule.sn === item.sn);
         allRules.splice(idx, 1, item);
 
-        $(`#tr-${item.sn}`).fadeOut(500, function() {
+        $(`#sn_${item.sn}`).fadeOut(500, function() {
             const html = $(tmpl.render(item)).addClass('selected').hide().fadeIn(1000);
             $(this).replaceWith(html);
             registerListItemClickHandlers(item.sn);
@@ -285,22 +299,25 @@
         processing = false;
     }
 
+    // 刪除表格清單項目
     function delListItem(sn) {
         // allRules 中移除
         const idx = allRules.findIndex(rule => rule.sn === sn);
         allRules.splice(idx, 1);
         // list 中移除 dom element
-        $(`#tr-${sn}`).css('background-color', '#ff7983').fadeOut(500, function() {
+        $(`#sn_${sn}`).css('background-color', '#ff7983').fadeOut(500, function() {
             $(this).remove();
         });
     }
 
+    // 註冊表格清單指定項目之 編輯 / 刪除 / 啟用停用 handler
     function registerListItemClickHandlers(sn) {
         $(`#edit-${sn}`).on('click', editBtnHandler);
         $(`#del-${sn}`).on('click', delBtnHandler);
         $(`#check-${sn}`).on('click', checkboxHandler);
     }
 
+    // 新增規則 ajax request
     function addRule(data) {
         processing = true;
         $.ajax({
@@ -316,6 +333,7 @@
         });
     }
 
+    // 更新規則 ajax request
     function updateRule(data) {
         processing = true;
         $.ajax({
@@ -327,24 +345,38 @@
             dataType: "json",
             success: updatedRule => updateListItem(updatedRule.result),
             error: err => showMsg(err, '更新時發生錯誤'),
-            complete: cancelBtnHandler
+            complete: resetAll
         });
     }
 
+    // 刪除規則 ajax request
     function delRule(sn) {
         processing = true;
         $.get(`${baseURL}?op=delRule&sn=${sn}`)
          .then(() => delListItem(sn))
          .fail(err => showMsg(err, '刪除規則時發生錯誤'))
-         .done(cancelBtnHandler);
+         .done(resetAll);
     }
 
+    // 顯示訊息區塊
     function showMsg(err, msg) {
         console.log(err);
         msgBlock.text(msg);
         msgBlock.addClass('show');
         setTimeout(() => msgBlock.removeClass('show'), 3000);
     }
+
+    // 啟動拖拉排序
+    function makeListSortable() {
+        $('#list').sortable({ opacity: 0.6, cursor: 'move', update: function() {
+                let order = $(this).sortable('serialize');
+                $.post('save_sort.php', order, function(theResponse){
+                    //$('#save_msg').html(theResponse);
+                }).fail(err => showMsg(err, '儲存排序時發生錯誤'));
+            }
+        });
+    }
+
 })($);
 
 </script>

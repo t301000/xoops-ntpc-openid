@@ -39,7 +39,7 @@ if (!function_exists('redirectTo')) {
     }
 }
 
-if (!function_exists('getAllRules')) {
+if (!function_exists('getAllLoginRules')) {
     /**
      * 取得所有登入規則
      *
@@ -47,14 +47,14 @@ if (!function_exists('getAllRules')) {
      *
      * @return array
      */
-    function getAllRules($only_enabled = true)
+    function getAllLoginRules($only_enabled = true)
     {
         global $xoopsDB;
 
         $rules = [];
 
         $sql = "SELECT 
-                    sn, rule, sort, enable
+                    sn, rule, enable
                 FROM
                     {$xoopsDB->prefix('ntpc_openid_login_rules')}";
         $sql .= $only_enabled ?
@@ -64,12 +64,11 @@ if (!function_exists('getAllRules')) {
                     sort ASC, sn ASC";
         $result = $xoopsDB->queryF($sql) or web_error($sql);
 
-        while (list($sn, $rule, $sort, $enable) = $xoopsDB->fetchRow($result)) {
+        while (list($sn, $rule, $enable) = $xoopsDB->fetchRow($result)) {
             $sn = (int) $sn;
             $rule = json_decode($rule, true);
-            $sort = (int) $sort;
             $enable = (int) $enable;
-            $rules[] = compact('sn', 'sort', 'rule', 'enable');
+            $rules[] = compact('sn', 'rule', 'enable');
         }
 
         return $rules;

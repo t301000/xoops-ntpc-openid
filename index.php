@@ -333,7 +333,7 @@ function loginGuard($data) {
      */
 
     // 所有啟用之登入規則
-    $rules = getAllRules();
+    $rules = getAllLoginRules();
     // die(var_dump($rules));
 
     // 空陣列 => 預設檢查校代碼

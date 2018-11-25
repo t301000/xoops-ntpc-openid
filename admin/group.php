@@ -33,6 +33,6 @@
     {
         global $xoopsTpl;
 
-        $main = "自動群組頁面開發中";
-        $xoopsTpl->assign('content', $main);
+        $data = "自動群組頁面開發中";
+        $xoopsTpl->assign('data', $data);
     }
