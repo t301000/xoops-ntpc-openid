@@ -211,7 +211,7 @@
     // 重設 ui 與 旗標狀態
     function resetAll() {
         addEditBtn.text('新增').removeClass('btn-warning');
-        $(`#sn_${editSN}`).removeClass('selected');
+        $(`#sn_${editSN}`).removeClass('selected added modified');
         editSN = null;
         processing = false;
         clearAllRuleFormInput();
@@ -228,7 +228,7 @@
     function editBtnHandler() {
         if (processing) return;
         // console.log('edit => ', $(this).data('sn'));
-        $('#list > tr').removeClass('selected');
+        $('#list > tr').removeClass('selected added modified');
 
         editSN = $(this).data('sn');
         $(`#sn_${editSN}`).addClass('selected');
@@ -299,7 +299,7 @@
 
         // 附加到列表畫面
         // const html = $(tmpl.render(item)).addClass('selected').hide().fadeIn(1000);
-        const html = $(tmpl.render(item)).addClass('added');
+        const html = $(tmpl.render(item)).addClass('ui-sortable-handle added');
         list.append(html);
         registerListItemClickHandlers(item.sn);
         processing = false;
@@ -313,7 +313,7 @@
         allRules.splice(idx, 1, item);
 
         $(`#sn_${item.sn}`).fadeOut(500, function() {
-            const html = $(tmpl.render(item)).addClass('modified');
+            const html = $(tmpl.render(item)).addClass('ui-sortable-handle modified');
             $(this).replaceWith(html);
             registerListItemClickHandlers(item.sn);
         });
@@ -391,11 +391,13 @@
     // 啟動拖拉排序
     function makeListSortable() {
         $('#list').sortable({ opacity: 0.6, cursor: 'move', update: function() {
-                let order = $(this).sortable('serialize');
-                $.post('save_sort.php', order, function(theResponse){
-                    // do something
-                }).fail(err => showMsg(err, '儲存排序時發生錯誤'));
-            }
+          $(this).children('tr').removeClass('added modified');
+
+          let order = $(this).sortable('serialize');
+          $.post('save_sort.php', order, function(theResponse){
+                // do something
+            }).fail(err => showMsg(err, '儲存排序時發生錯誤'));
+          }
         });
     }
 
