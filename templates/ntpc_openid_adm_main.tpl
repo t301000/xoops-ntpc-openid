@@ -9,6 +9,26 @@
     background-color: #fefcb8;
   }
 
+  tr.added,
+  tr.modified{
+    /*background-color: #fefcb8;*/
+    animation: adding 2s;
+  }
+
+  @keyframes adding {
+    0% {
+      opacity: 0;
+      background-color: transparent;
+    }
+    70% {
+      opacity: 1;
+      background-color: #8afe6b;
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
   .table > tbody > tr > td {
     vertical-align: middle;
   }
@@ -165,6 +185,7 @@
 
     let allRules = []; // 存放所有規則
 
+
     // 取得所有規則
     $.get(`${baseURL}?op=getAllRules`)
       .then(rules => generateList(rules))
@@ -207,8 +228,9 @@
     function editBtnHandler() {
         if (processing) return;
         // console.log('edit => ', $(this).data('sn'));
-        editSN = $(this).data('sn');
+        $('#list > tr').removeClass('selected');
 
+        editSN = $(this).data('sn');
         $(`#sn_${editSN}`).addClass('selected');
 
         // 找出編輯的 rule
@@ -235,7 +257,8 @@
         $.get(`${baseURL}?op=toggleRuleActive&sn=${this.value}`)
          .then(() => {
              // 改 allRules
-             // 改 checkbox checked
+             let rule = allRules.find(rule => rule.sn === +this.value);
+             rule.enable = +(!rule.enable);
          })
          .fail(err => showMsg(err, '規則 啟用 / 停用 時發生錯誤'))
          .done(resetAll);
@@ -275,10 +298,10 @@
         allRules.push(item); // 加入新規則
 
         // 附加到列表畫面
-        const html = $(tmpl.render(item)).addClass('selected').hide().fadeIn(1000);
+        // const html = $(tmpl.render(item)).addClass('selected').hide().fadeIn(1000);
+        const html = $(tmpl.render(item)).addClass('added');
         list.append(html);
         registerListItemClickHandlers(item.sn);
-        setTimeout(() => html.removeClass('selected'), 1500);
         processing = false;
     }
 
@@ -290,10 +313,9 @@
         allRules.splice(idx, 1, item);
 
         $(`#sn_${item.sn}`).fadeOut(500, function() {
-            const html = $(tmpl.render(item)).addClass('selected').hide().fadeIn(1000);
+            const html = $(tmpl.render(item)).addClass('modified');
             $(this).replaceWith(html);
             registerListItemClickHandlers(item.sn);
-            setTimeout(() => html.removeClass('selected'), 1500);
         });
         addEditBtn.removeClass('btn-warning');
         processing = false;
@@ -371,7 +393,7 @@
         $('#list').sortable({ opacity: 0.6, cursor: 'move', update: function() {
                 let order = $(this).sortable('serialize');
                 $.post('save_sort.php', order, function(theResponse){
-                    //$('#save_msg').html(theResponse);
+                    // do something
                 }).fail(err => showMsg(err, '儲存排序時發生錯誤'));
             }
         });
