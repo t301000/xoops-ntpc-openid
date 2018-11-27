@@ -50,7 +50,7 @@ $modversion['hasMain'] = 1;
 //$modversion['sub'][1]['url'] = '';
 
 //---模組自動功能---//
-//$modversion['onInstall'] = "include/install.php";
+$modversion['onInstall'] = "include/onInstall.php";
 //$modversion['onUpdate'] = "include/update.php";
 //$modversion['onUninstall'] = "include/onUninstall.php";
 

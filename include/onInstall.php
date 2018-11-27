@@ -1,22 +1,54 @@
 <?php
-/*
-function xoops_module_install_模組目錄(&$module) {
 
-mk_dir(XOOPS_ROOT_PATH."/uploads/模組目錄");
-
-return true;
-}
-
-//建立目錄
-function mk_dir($dir=""){
-//若無目錄名稱秀出警告訊息
-if(empty($dir))return;
-//若目錄不存在的話建立目錄
-if (!is_dir($dir)) {
-umask(000);
-//若建立失敗秀出警告訊息
-mkdir($dir, 0777);
-}
-}
+/**
+ * 模組安裝後執行
+ *
+ * @param $module
+ *
+ * @return bool|void
  */
+function xoops_module_install_ntpc_openid(&$module) {
+
+    $result = true;
+
+    if (checkIfTableExist('tad_login_random_pass')) {
+        $result = copyTable('tad_login_random_pass', 'ntpc_openid_random_pass');
+    }
+
+    return $result;
+}
+
+/**
+ * 檢查資料表是否存在
+ *
+ * @param string $table_name
+ *
+ * @return bool
+ */
+function checkIfTableExist($table_name = 'tad_login_random_pass') {
+    global $xoopsDB;
+
+    $sql = "SHOW TABLES LIKE '{$xoopsDB->prefix('tad_login_random_pass')}'";
+    $result = $xoopsDB->query($sql);
+
+    list($table) = $xoopsDB->fetchRow($result);
+
+    return !!$table;
+}
+
+/**
+ * 複製資料表資料
+ *
+ * @param string $from
+ * @param string $to
+ */
+function copyTable($from = 'tad_login_random_pass', $to = 'ntpc_openid_random_pass') {
+    global $xoopsDB;
+
+    $sql = "INSERT INTO `{$xoopsDB->prefix($to)}` SELECT * FROM `{$xoopsDB->prefix($from)}`";
+    $result = $xoopsDB->query($sql);
+
+    return $result;
+}
+
 ?>
