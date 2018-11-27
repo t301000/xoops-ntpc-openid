@@ -14,7 +14,7 @@ define('_MI_NTPCOPENID_BLOCK_DESC_1', '新北市 OpenID 登入');
 
 // 偏好設定
 define('_MI_NTPCOPENID_CONFIG_SCHOOLID', '學校 / 單位代碼');
-define('_MI_NTPCOPENID_CONFIG_SCHOOLID_DESC', '學校 / 單位代碼');
+define('_MI_NTPCOPENID_CONFIG_SCHOOLID_DESC', '學校 / 單位代碼，若未設定則不會自動建立行政人員帳號。');
 
 define('_MI_NTPCOPENID_CONFIG_OFFICER_GID', '行政群組');
 define('_MI_NTPCOPENID_CONFIG_OFFICER_GID_DESC', '行政人員所屬群組');

@@ -77,7 +77,7 @@ $modversion['config'][$i]['title']    = '_MI_NTPCOPENID_CONFIG_SCHOOLID';
 $modversion['config'][$i]['description']    = '_MI_NTPCOPENID_CONFIG_SCHOOLID_DESC';
 $modversion['config'][$i]['formtype']    = 'textbox';
 $modversion['config'][$i]['valuetype']    = 'text';
-$modversion['config'][$i]['default']    = '014569';
+$modversion['config'][$i]['default']    = '';
 
 $i++;
 $modversion['config'][$i]['name']    = 'officer_gid';
