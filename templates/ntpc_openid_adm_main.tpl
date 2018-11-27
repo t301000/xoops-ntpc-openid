@@ -1,75 +1,4 @@
-<style>
-  .table .checkbox {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-
-  tr.selected,
-  .table-hover > tbody > tr:hover {
-    background-color: #fefcb8;
-  }
-
-  tr.added,
-  tr.modified{
-    /*background-color: #fefcb8;*/
-    animation: adding 2s;
-  }
-
-  @keyframes adding {
-    0% {
-      opacity: 0;
-      background-color: transparent;
-    }
-    70% {
-      opacity: 1;
-      background-color: #8afe6b;
-    }
-    100% {
-      background-color: transparent;
-    }
-  }
-
-  .table > tbody > tr > td {
-    vertical-align: middle;
-  }
-
-  tr > th,
-  tr > td:not(:nth-child(2)) {
-    text-align: center;
-  }
-
-  label {
-    width: 100%;
-    height: 100%;
-  }
-
-  .checkbox label {
-    padding-left: 0;
-  }
-
-  .checkbox input[type="checkbox"] {
-    margin-left: 0;
-    cursor: pointer;
-  }
-
-  #msg {
-    display: none;
-    width: 250px;
-    padding: 20px;
-    position: absolute;
-    left: 50%;
-    top: 50px;
-    text-align: center;
-    background-color: #faf6d1;
-    border: 1px solid #b8b8b8;
-    border-radius: 10px;
-    transform: translateX(-50%);
-  }
-
-  #msg.show {
-    display: block;
-  }
-</style>
+<link href="<{$xoops_url}>/modules/ntpc_openid/templates/ntpc_openid.css" rel="stylesheet">
 
 <div class="container-fluid">
   <div class="page-header">
@@ -79,10 +8,12 @@
   <div class="row">
 
     <div class="col-sm-4 col-md-3">
+
       <div class="form-group">
         <label for="school-code">學校/單位代碼</label>
         <input type="text" class="form-control" id="school-code" placeholder="<{$data.schoolCode}>" value="<{$data.schoolCode}>">
       </div>
+
       <div class="form-group">
         <label for="roles">身分</label>
         <select multiple class="form-control" id="roles">
@@ -98,27 +29,24 @@
         <div class="col-sm-6"><button type="button" class="btn btn-default btn-block" id="cancel-btn">取消</button></div>
       </div>
 
-
     </div>
 
     <div class="col-sm-8 col-md-6">
-      <div class="row">
-        <div class="col-sm-12">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th class="bg-primary">#</th>
-                <th class="bg-primary">規則</th>
-                <th class="bg-primary">管理</th>
-                <th class="bg-primary">啟用</th>
-              </tr>
-            </thead>
-            <tbody id="list">
 
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th class="bg-primary">#</th>
+            <th class="bg-primary">規則</th>
+            <th class="bg-primary">管理</th>
+            <th class="bg-primary">啟用</th>
+          </tr>
+        </thead>
+        <tbody id="list">
+
+        </tbody>
+      </table>
+
     </div>
   </div>
 
