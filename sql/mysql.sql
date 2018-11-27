@@ -11,3 +11,11 @@ CREATE TABLE `ntpc_openid_login_rules` (
   `enable` tinyint(1) NOT NULL default 1,
   PRIMARY KEY (`sn`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `ntpc_openid_group_rules` (
+  `sn` int unsigned NOT NULL AUTO_INCREMENT,
+  `rule` text NOT NULL,
+  `gid` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `enable` tinyint(1) NOT NULL default 1,
+  PRIMARY KEY (`sn`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;

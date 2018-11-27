@@ -38,6 +38,7 @@ $modversion['system_menu'] = 1;
 $modversion['sqlfile']['mysql'] = 'sql/mysql.sql';
 $modversion['tables'][0] = 'ntpc_openid_random_pass';
 $modversion['tables'][1] = 'ntpc_openid_login_rules';
+$modversion['tables'][2] = 'ntpc_openid_group_rules';
 
 //---後台管理介面設定---//
 $modversion['hasAdmin']   = 1;
