@@ -29,10 +29,10 @@
     /*-----------function區--------------*/
 
 //顯示預設頁面內容
-    function show_content()
-    {
-        global $xoopsTpl;
+function show_content()
+{
+    global $xoopsTpl, $xoopsModuleConfig;
 
-        $data = "自動群組頁面開發中";
-        $xoopsTpl->assign('data', $data);
-    }
+    $data['schoolCode'] = $xoopsModuleConfig['school_code'];
+    $xoopsTpl->assign('data', $data);
+}
