@@ -37,6 +37,7 @@ $modversion['system_menu'] = 1;
 //---模組資料表架構---//
 $modversion['sqlfile']['mysql'] = 'sql/mysql.sql';
 $modversion['tables'][0] = 'ntpc_openid_random_pass';
+$modversion['tables'][1] = 'ntpc_openid_login_rules';
 
 //---後台管理介面設定---//
 $modversion['hasAdmin']   = 1;
