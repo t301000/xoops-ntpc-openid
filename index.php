@@ -17,7 +17,7 @@ if ($xoopsUser) redirectTo(XOOPS_URL);
 
 $openid = new LightOpenID(XOOPS_URL);
 
-
+// 假資料測試模式 或 正常模式
 if (FAKE_MODE) {
     fake_mode($op);
 } else {
@@ -44,10 +44,11 @@ include_once XOOPS_ROOT_PATH . '/footer.php';
 function fake_mode($op) {
     switch ($op) {
         case 'check':
-            // if (!isset($_SESSION['temp_user_data'])) {
-            //     redirectTo(XOOPS_URL);
-            // }
+            // 檢查是否可登入，可則登入
 
+            // 取得欲使用之假資料
+            // $idx 為授權資訊 index
+            // $uidx 為假資料 user index
             $idx = system_CleanVars($_REQUEST, 'idx', 0, 'int');
             $uidx = system_CleanVars($_REQUEST, 'uidx', 0, 'int');
             $user_data = FAKE_USERS[$uidx];
@@ -57,11 +58,15 @@ function fake_mode($op) {
             break;
 
         default:
+            // 顯示假資料列表
             showFakeUserList();
             break;
     }
 }
 
+/**
+ * 顯示假資料列表
+ */
 function showFakeUserList() {
     global $xoopsTpl;
 
@@ -79,6 +84,14 @@ INFOS;
     $xoopsTpl->assign('content', $main);
 }
 
+/**
+ * 取得一筆假資料 user 顯示項目
+ *
+ * @param $uidx
+ * @param $data
+ *
+ * @return string
+ */
 function getListItem($uidx, $data) {
     $authInfos='';
     foreach ($data['authInfos'] as $idx => $info) {
@@ -504,7 +517,7 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
         }
 
         if (0 == $user->getVar('level')) {
-            redirect_header(XOOPS_URL . '/index.php', 5, _MD_TNOPENID_NOACTTPADM);
+            redirect_header(XOOPS_URL . '/index.php', 5, _MD_NTPCOPENID_INCORRECTLOGIN);
             exit();
         }
         //若網站關閉
@@ -865,8 +878,8 @@ function checkGroupRule($data, $rule) {
     $data_to_check['title'] = $data['used_authInfo']['title'];
     $data_to_check['groups'] = $data['used_authInfo']['groups']; // 為陣列
 
-    $gid = $rule['gid'];
-    unset($rule['gid']);
+    $gid = $rule['gid']; // 取出此規則通過後分配之 group id
+    unset($rule['gid']); // 清除，後續檢查時不檢查檢查 gid，因待檢查資料無此欄位
 
     $result = true;
     // 逐一檢查各欄位，false first
