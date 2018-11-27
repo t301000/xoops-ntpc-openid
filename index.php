@@ -8,6 +8,10 @@ include_once XOOPS_ROOT_PATH . "/header.php";
 require_once 'class/openid.php';
 require_once 'config.php';
 
+// 是否建立行政帳號
+// 偏好設定校代碼有設才建立
+$createOfficer = trim($xoopsModuleConfig['school_code']) !== '' ;
+
 /*-----------執行動作判斷區----------*/
 include_once $GLOBALS['xoops']->path('/modules/system/include/functions.php');
 $op = system_CleanVars($_REQUEST, 'op', '', 'string');
@@ -349,11 +353,15 @@ function loginGuard($data) {
     $rules = getAllLoginRules();
     // die(var_dump($rules));
 
-    // 空陣列 => 預設檢查校代碼
-    if (empty($rules)) {
-        $rules[] = ['id' => $xoopsModuleConfig['school_code']];
+    // 空陣列 且 偏好設定校代碼有設 => 加入預設規則：只檢查校代碼
+    if (empty($rules) && $xoopsModuleConfig['school_code']) {
+        $rules[] = ['rule' => ['id' => $xoopsModuleConfig['school_code']]];
     }
 
+    // 若規則陣列為空，則允許登入
+    if (empty($rules)) return true;
+
+    // 規則陣列不為空
     // 逐一檢查授權資訊是否符合登入規則，一有符合即回傳 true
     foreach ($authInfos as $id => $authInfo) {
         $result = checkSingleAuthInfo($id, $authInfo, $rules);
@@ -467,7 +475,7 @@ function clearTempSession() {
  * @param string $occ
  */
 function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '') {
-    global $xoopsModuleConfig, $xoopsConfig;
+    global $xoopsModuleConfig, $xoopsConfig, $createOfficer;
     $member_handler = xoops_getHandler('member');
 
     $uname = trim($data['openid']) . "_ntpc";
@@ -477,12 +485,16 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
     $uid = get_uid($uname, $data, false); // 個人帳號
     // ddd($uid);
 
-    // 若為行政，則替換為行政帳號
-    $officer = array_intersect($data['used_authInfo']['groups'], OFFICER);
-    if ($is_officer = count($officer) > 0) {
-        $uname = $officer[0]; // 取第一個
-        $uid = get_uid($uname, $data, true); // 行政帳號 uid
-        // ddd($uid);
+    // 如果要建立行政帳號
+    $is_officer = false; // 是否具有行政身分
+    if ($createOfficer) {
+        // 若為行政，則替換為行政帳號
+        $officer = array_intersect($data['used_authInfo']['groups'], OFFICER);
+        if ($is_officer = count($officer) > 0) {
+            $uname = $officer[0]; // 取第一個
+            $uid = get_uid($uname, $data, true); // 行政帳號 uid
+            // ddd($uid);
+        }
     }
 
     /******* 登入 user *******/
@@ -510,9 +522,8 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
         $JobName = trim($data['used_authInfo']['role']); // 身份
 
         // 處理群組
-        //add2group($user->getVar('uid'), $email, $SchoolCode, $JobName);
+        // 若群組有更動，則重新登入 user
         if (syncGroup($user, $data, $is_officer)) {
-            // 若群組有更動，則重新登入 user
             $user = $xoopsAuth->authenticate($uname, $pass);
         }
 
