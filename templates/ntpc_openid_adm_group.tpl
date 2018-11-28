@@ -152,7 +152,7 @@
               </tr>
               <tr>
                 <td>校代碼：014569 | 身分：教師</td>
-                <td>教師</td>
+                <td>教務處教務處教師</td>
                 <td>
                   <div class="btn-group" role="group">
                     <button type="button" class="btn btn-warning edit-btn" id="edit-{{:sn}}" data-sn="{{:sn}}">修改</button>
@@ -207,11 +207,69 @@
   https://www.jsviews.com/#jsrapi
 -->
 <script id="myTmpl" type="text/x-jsrender">
-
+  <tr id="sn_{{:sn}}">
+    <td>
+      {{if rule.id}}代碼：{{:rule.id}} {{/if}} |
+      {{if rule.openid}}帳號：{{:rule.openid}} {{/if}} |
+      {{if rule.role}}身分：{{:rule.role}} {{/if}} |
+      {{if rule.title}}職務：{{:rule.title}} {{/if}} |
+      {{if rule.group}}職稱：{{:rule.group}} {{/if}}
+    </td>
+    <td>{{:gid}}</td>
+    <td>
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-warning edit-btn" id="edit-{{:sn}}" data-sn="{{:sn}}">修改</button>
+        <button type="button" class="btn btn-danger del-btn" id="del-{{:sn}}" data-sn="{{:sn}}">刪除</button>
+      </div>
+    </td>
+    <td>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" class="cbox" id="check-{{:sn}}" {{if enable}}checked{{/if}}  value="{{:sn}}">
+        </label>
+      </div>
+    </td>
+  </tr>
 </script>
 
 <script>
 ;(function($){
+  const baseURL = document.URL; // admin/group.php 之 URL
+
+  const tmpl = $.templates("#myTmpl");
+  const list = $("#list");
+
+  const msgBlock = $('#msg'); // 訊息區塊
+
+  const schoolCodeInput = $('#school-code'); // 校代碼輸入
+  const defaultSchoolCode = schoolCodeInput.val(); // 預設校代碼
+
+  const openidInput = $('#openid'); // 帳號輸入
+  const rolesSelect = $('#roles'); // 身分多選選單
+  const titlesSelect = $('#titles'); // 職務多選選單
+  const groupsSelect = $('#groups'); // 職稱多選選單
+
+  const addEditBtn = $('#add-edit-btn'); // 新增/更新 按鈕
+  addEditBtn.on('click', addEditBtnHandler);
+
+  const cancelBtn = $('#cancel-btn'); // 取消按鈕
+  cancelBtn.on('click', resetAll);
+
+  let editSN = null; // 旗標：紀錄編輯的資料 sn
+  let processing = false; // 旗標：是否處理中
+
+  let allRules = []; // 存放所有規則
+
+  // 取得所有規則
+  $.get(`${baseURL}?op=getAllRules`)
+   .then(rules => generateList(rules))
+   .fail(err => showMsg(err, '取得所有規則時發生錯誤'))
+   .done(null);
+
+  /********* function 區 *********/
+
+
+
 
 })($);
 </script>
