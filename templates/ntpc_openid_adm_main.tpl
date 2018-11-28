@@ -1,4 +1,13 @@
 <link href="<{$xoops_url}>/modules/ntpc_openid/templates/ntpc_openid.css" rel="stylesheet">
+<style>
+  tr > td:not(:nth-child(2)) {
+    text-align: center;
+  }
+
+  th.sort-handler {
+    width: 20px;
+  }
+</style>
 
 <div class="container-fluid">
   <div class="page-header">
@@ -6,46 +15,53 @@
   </div>
 
   <div class="row">
+    <div class="col-sm-12">
 
-    <div class="col-sm-4 col-md-3">
+      <div class="flex-container">
 
-      <div class="form-group">
-        <label for="school-code">學校/單位代碼</label>
-        <input type="text" class="form-control" id="school-code" placeholder="<{$data.schoolCode}>" value="<{$data.schoolCode}>">
+        <!--////////////   左側區塊   ////////////-->
+        <div class="flex-container flex-column left-block">
+          <div class="form-group">
+            <label for="school-code">學校/單位代碼</label>
+            <input type="text" class="form-control" id="school-code" placeholder="<{$data.schoolCode}>" value="<{$data.schoolCode}>">
+          </div>
+
+          <div class="form-group">
+            <label for="roles">身分 <small class="text-danger text-hint">可複選</small></label>
+            <select multiple class="form-control" id="roles">
+              <option>教師</option>
+              <option>學生</option>
+              <option>家長</option>
+              <option>志工</option>
+            </select>
+          </div>
+
+          <div class="flex-container">
+            <div class="flex-1" style="margin-right: 10px;"><button type="button" class="btn btn-primary btn-block" id="add-edit-btn">新增</button></div>
+            <div class="flex-1"><button type="button" class="btn btn-default btn-block" id="cancel-btn">取消</button></div>
+          </div>
+        </div>
+
+        <!--////////////   右側區塊   ////////////-->
+        <div class="right-block">
+
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th class="bg-primary sort-handler">#</th>
+                <th class="bg-primary">規則</th>
+                <th class="bg-primary tool">管理</th>
+                <th class="bg-primary enable">啟用</th>
+              </tr>
+            </thead>
+            <tbody id="list">
+
+            </tbody>
+          </table>
+
+        </div>
+
       </div>
-
-      <div class="form-group">
-        <label for="roles">身分</label>
-        <select multiple class="form-control" id="roles">
-          <option>教師</option>
-          <option>學生</option>
-          <option>家長</option>
-          <option>志工</option>
-        </select>
-      </div>
-
-      <div class="row">
-        <div class="col-sm-6"><button type="button" class="btn btn-primary btn-block" id="add-edit-btn">新增</button></div>
-        <div class="col-sm-6"><button type="button" class="btn btn-default btn-block" id="cancel-btn">取消</button></div>
-      </div>
-
-    </div>
-
-    <div class="col-sm-8 col-md-6">
-
-      <table class="table table-hover">
-        <thead>
-          <tr>
-            <th class="bg-primary">#</th>
-            <th class="bg-primary">規則</th>
-            <th class="bg-primary">管理</th>
-            <th class="bg-primary">啟用</th>
-          </tr>
-        </thead>
-        <tbody id="list">
-
-        </tbody>
-      </table>
 
     </div>
   </div>

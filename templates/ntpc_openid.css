@@ -32,9 +32,16 @@ tr.modified{
     vertical-align: middle;
 }
 
-tr > th,
-tr > td:not(:nth-child(2)) {
+tr > th {
     text-align: center;
+}
+
+th.tool {
+    width: 130px;
+}
+
+th.enable {
+    width: 50px;
 }
 
 label {
@@ -67,4 +74,32 @@ label {
 
 #msg.show {
     display: block;
+}
+
+.flex-container {
+    display: flex;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.text-hint {
+    vertical-align: baseline;
+}
+
+.left-block {
+    width: 200px;
+    margin-right: 30px;
+    flex-shrink: 0;
+}
+
+.right-block {
+    flex-basis: 500px;
+    flex-grow: 1;
+    flex-shrink: 1;
 }
