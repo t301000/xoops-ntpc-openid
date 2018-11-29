@@ -18,6 +18,11 @@
         <!--////////////   左側區塊   ////////////-->
         <div class="flex-container flex-column left-block">
           <div class="form-group">
+            <label for="gid">群組</label>
+            <select class="form-control" id="gid" size="6"></select>
+          </div>
+
+          <div class="form-group">
             <label for="school-code">學校/單位代碼</label>
             <input type="text" class="form-control" id="school-code" placeholder="<{$data.schoolCode}>" value="<{$data.schoolCode}>">
           </div>
@@ -238,12 +243,13 @@
 
   const tmpl = $.templates("#myTmpl");
   const list = $("#list");
+  list.on('click', listClickHandler);
 
   const msgBlock = $('#msg'); // 訊息區塊
 
+  const gidSelect = $('#gid'); // 群組選擇
   const schoolCodeInput = $('#school-code'); // 校代碼輸入
   const defaultSchoolCode = schoolCodeInput.val(); // 預設校代碼
-
   const openidInput = $('#openid'); // 帳號輸入
   const rolesSelect = $('#roles'); // 身分多選選單
   const titlesSelect = $('#titles'); // 職務多選選單
@@ -259,17 +265,52 @@
   let processing = false; // 旗標：是否處理中
 
   let allRules = []; // 存放所有規則
+  let allGroups = []; // 存放所有群組
 
   // 取得所有規則
-  $.get(`${baseURL}?op=getAllRules`)
-   .then(rules => generateList(rules))
+  $.get(`${baseURL}?op=getAllRulesAndGroups`)
+   .then(data => generateListAndGroups(data))
    .fail(err => showMsg(err, '取得所有規則時發生錯誤'))
    .done(null);
 
   /********* function 區 *********/
 
+  function resetAll() {
 
+  }
 
+  function addEditBtnHandler() {
+
+  }
+
+  function listClickHandler(event) {
+      console.log(event);
+      console.log(event.target);
+  }
+
+  function generateListAndGroups({rules, xoopsGroups}) {
+      generateList(rules);
+      generateGroupSelectOptions(xoopsGroups);
+  }
+
+  function generateList(rules) {
+    allRules = rules;
+    console.log('allRules', allRules);
+  }
+
+  function generateGroupSelectOptions(groups) {
+      allGroups = groups;
+      console.log('allGroups', allGroups);
+
+      allGroups.forEach(item => {
+          let option = `<option value="${item.gid}">${item.name}</option>`;
+          gidSelect.append(option).val(2);
+      });
+  }
+
+  function showMsg(error, msg) {
+
+  }
 
 })($);
 </script>
