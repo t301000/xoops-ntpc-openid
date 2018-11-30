@@ -813,7 +813,9 @@ function syncGroup(XoopsUser $user, $data, $is_officer = false) {
     $need_relogin = false;
 
     // 群組分配規則
-    $group_rules = GROUP_RULES;
+    //$group_rules = GROUP_RULES;
+    $group_rules = getAllGroupRules(true);
+    // die(var_dump($group_rules));
 
     // 目前持有的群組 id 陣列，轉字串為數字
     $gids_current = array_map(function ($gid) {
@@ -836,6 +838,23 @@ function syncGroup(XoopsUser $user, $data, $is_officer = false) {
 
     $gids_to_add = array_diff($gids, $gids_current);
     $gids_to_remove = array_diff($gids_current, $gids);
+    echo "現有 gid <br>";
+    echo "<pre>";
+    print_r($gids_current);
+    // echo "</pre>";
+    // echo "應有 gid <br>";
+    // echo "<pre>";
+    // print_r($gids);
+    // echo "</pre>";
+    // echo "增加 gid <br>";
+    // echo "<pre>";
+    // print_r($gids_to_add);
+    // echo "</pre>";
+    // echo "移除 gid <br>";
+    // echo "<pre>";
+    // print_r($gids_to_remove);
+    // echo "</pre>";
+    // die();
 
     // 新增群組
     if (count($gids_to_add) > 0) {
@@ -882,27 +901,37 @@ function syncGroup(XoopsUser $user, $data, $is_officer = false) {
  */
 function checkGroupRule($data, $rule) {
     // 攤平陣列，只取需要的欄位
-    $data_to_check['openid'] = $data['openid'];
-    $data_to_check['email'] = $data['email'];
-    $data_to_check['id'] = $data['used_authInfo']['id'];
-    $data_to_check['role'] = $data['used_authInfo']['role'];
-    $data_to_check['title'] = $data['used_authInfo']['title'];
+    $data_to_check['openid'] = array($data['openid']);
+    // $data_to_check['email'] = array($data['email']);
+    $data_to_check['id'] = array($data['used_authInfo']['id']);
+    $data_to_check['role'] = array($data['used_authInfo']['role']);
+    $data_to_check['title'] = array($data['used_authInfo']['title']);
     $data_to_check['groups'] = $data['used_authInfo']['groups']; // 為陣列
 
     $gid = $rule['gid']; // 取出此規則通過後分配之 group id
     unset($rule['gid']); // 清除，後續檢查時不檢查檢查 gid，因待檢查資料無此欄位
+    // echo "待檢查資料：<br><pre>";
+    // print_r($data_to_check);
+    // echo "</pre>";
+    // echo "規則：<br><pre>";
+    // print_r($rule);
+    // echo "</pre>";
+    // die;
 
     $result = true;
     // 逐一檢查各欄位，false first
-    foreach ($rule as $k => $v) {
-        if ($k === 'groups') {
-            // groups 採陣列交集比對
-            $v = is_array($v) ? $v : [$v];
-            $result = count(array_intersect($data_to_check[$k], $v)) > 0;
-        } else {
-            // 其餘採字串比對
-            $result = $data_to_check[$k] === $v;
-        }
+    foreach ($rule['rule'] as $k => $v) {
+        // if ($k === 'groups') {
+        //     // groups 採陣列交集比對
+        //     $v = is_array($v) ? $v : [$v];
+        //     $result = count(array_intersect($data_to_check[$k], $v)) > 0;
+        // } else {
+        //     // 其餘採字串比對
+        //     $result = $data_to_check[$k] === $v;
+        // }
+
+        $v = is_array($v) ? $v : [$v];
+        $result = count(array_intersect($data_to_check[$k], $v)) > 0;
 
         if (!$result) {
             // 不符合，回傳 0
