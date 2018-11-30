@@ -39,6 +39,7 @@ $modversion['sqlfile']['mysql'] = 'sql/mysql.sql';
 $modversion['tables'][0] = 'ntpc_openid_random_pass';
 $modversion['tables'][1] = 'ntpc_openid_login_rules';
 $modversion['tables'][2] = 'ntpc_openid_group_rules';
+$modversion['tables'][3] = 'ntpc_openid_officer_list';
 
 //---後台管理介面設定---//
 $modversion['hasAdmin']   = 1;
@@ -64,6 +65,10 @@ $modversion['templates'][$i]['description'] = '後台登入規則管理頁樣板
 $i++;
 $modversion['templates'][$i]['file']        = 'ntpc_openid_adm_group.tpl';
 $modversion['templates'][$i]['description'] = '後台自動群組管理頁樣板';
+
+$i++;
+$modversion['templates'][$i]['file']        = 'ntpc_openid_adm_officer.tpl';
+$modversion['templates'][$i]['description'] = '後台行政帳號管理頁樣板';
 
 $i++;
 $modversion['templates'][$i]['file']        = 'ntpc_openid_index.tpl';

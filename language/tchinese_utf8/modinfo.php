@@ -8,6 +8,9 @@ define("_MI_NTPCOPENID_ADMENU1_DESC", "登入規則管理頁");
 define("_MI_NTPCOPENID_ADMENU2", "自動群組");
 define("_MI_NTPCOPENID_ADMENU2_DESC", "自動群組管理頁");
 
+define("_MI_NTPCOPENID_ADMENU3", "行政帳號");
+define("_MI_NTPCOPENID_ADMENU3_DESC", "行政帳號管理頁");
+
 // 區塊
 define('_MI_NTPCOPENID_BLOCK_NAME_1', '新北市 OpenID 登入');
 define('_MI_NTPCOPENID_BLOCK_DESC_1', '新北市 OpenID 登入');

@@ -19,3 +19,11 @@ CREATE TABLE `ntpc_openid_group_rules` (
   `enable` tinyint(1) NOT NULL default 1,
   PRIMARY KEY (`sn`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `ntpc_openid_officer_list` (
+  `sn` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `enable` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`sn`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
