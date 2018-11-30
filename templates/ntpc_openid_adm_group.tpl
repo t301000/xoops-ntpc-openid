@@ -132,64 +132,12 @@
             <thead>
               <tr>
                 <th class="bg-primary">規則</th>
-                <th class="bg-primary" style="width: 100px;">群組</th>
+                <th class="bg-primary" style="width: 120px;">群組</th>
                 <th class="bg-primary tool">管理</th>
                 <th class="bg-primary enable">啟用</th>
               </tr>
             </thead>
-            <tbody id="list">
-              <tr>
-                <td>校代碼：014569 | 身分：教師</td>
-                <td>教師</td>
-                <td>
-                  <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-warning edit-btn" id="edit-{{:sn}}" data-sn="{{:sn}}">修改</button>
-                    <button type="button" class="btn btn-danger del-btn" id="del-{{:sn}}" data-sn="{{:sn}}">刪除</button>
-                  </div>
-                </td>
-                <td>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" class="cbox" id="check-{{:sn}}" {{if enable}}checked{{/if}}  value="{{:sn}}">
-                    </label>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>校代碼：014569 | 身分：教師</td>
-                <td>教務處教務處教師</td>
-                <td>
-                  <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-warning edit-btn" id="edit-{{:sn}}" data-sn="{{:sn}}">修改</button>
-                    <button type="button" class="btn btn-danger del-btn" id="del-{{:sn}}" data-sn="{{:sn}}">刪除</button>
-                  </div>
-                </td>
-                <td>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" class="cbox" id="check-{{:sn}}" {{if enable}}checked{{/if}}  value="{{:sn}}">
-                    </label>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>校代碼：014569 | 身分：教師</td>
-                <td>教師</td>
-                <td>
-                  <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-warning edit-btn" id="edit-{{:sn}}" data-sn="{{:sn}}">修改</button>
-                    <button type="button" class="btn btn-danger del-btn" id="del-{{:sn}}" data-sn="{{:sn}}">刪除</button>
-                  </div>
-                </td>
-                <td>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" class="cbox" id="check-{{:sn}}" {{if enable}}checked{{/if}}  value="{{:sn}}">
-                    </label>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
+            <tbody id="list"></tbody>
           </table>
 
         </div>
@@ -214,23 +162,23 @@
 <script id="myTmpl" type="text/x-jsrender">
   <tr id="sn_{{:sn}}">
     <td>
-      {{if rule.id}}代碼：{{:rule.id}} {{/if}} |
-      {{if rule.openid}}帳號：{{:rule.openid}} {{/if}} |
-      {{if rule.role}}身分：{{:rule.role}} {{/if}} |
-      {{if rule.title}}職務：{{:rule.title}} {{/if}} |
-      {{if rule.group}}職稱：{{:rule.group}} {{/if}}
+      {{if rule.id}}<span class="item">代碼：{{:rule.id}}</span>{{/if}}
+      {{if rule.openid}}<span class="item">帳號：{{:rule.openid}}</span>{{/if}}
+      {{if rule.role}}<span class="item">身分：{{:rule.role}}</span>{{/if}}
+      {{if rule.title}}<span class="item">職務：{{:rule.title}}</span>{{/if}}
+      {{if rule.group}}<span class="item">職稱：{{:rule.groups}}</span>{{/if}}
     </td>
-    <td>{{:gid}}</td>
+    <td>{{:gname}}</td>
     <td>
       <div class="btn-group" role="group">
-        <button type="button" class="btn btn-warning edit-btn" id="edit-{{:sn}}" data-sn="{{:sn}}">修改</button>
-        <button type="button" class="btn btn-danger del-btn" id="del-{{:sn}}" data-sn="{{:sn}}">刪除</button>
+        <button type="button" class="btn btn-warning edit-btn" id="edit-{{:sn}}" data-action="edit" data-sn="{{:sn}}">修改</button>
+        <button type="button" class="btn btn-danger del-btn" id="del-{{:sn}}" data-action="del" data-sn="{{:sn}}">刪除</button>
       </div>
     </td>
     <td>
       <div class="checkbox">
         <label>
-          <input type="checkbox" class="cbox" id="check-{{:sn}}" {{if enable}}checked{{/if}}  value="{{:sn}}">
+          <input type="checkbox" class="cbox" id="check-{{:sn}}" {{if enable}}checked{{/if}} data-action="toggle" data-sn="{{:sn}}" value="{{:sn}}">
         </label>
       </div>
     </td>
@@ -261,7 +209,7 @@
   const cancelBtn = $('#cancel-btn'); // 取消按鈕
   cancelBtn.on('click', resetAll);
 
-  let editSN = null; // 旗標：紀錄編輯的資料 sn
+  let editItem = null; // 旗標：紀錄編輯的物件
   let processing = false; // 旗標：是否處理中
 
   let allRules = []; // 存放所有規則
@@ -284,28 +232,74 @@
   }
 
   function listClickHandler(event) {
-      console.log(event);
-      console.log(event.target);
+    // console.log(event.target);
+    const target = $(event.target);
+    const action = target.data('action');
+    const sn = target.data('sn');
+    console.log(action, sn);
+    switch (action) {
+      case 'edit': // 按下編輯
+        editItem = allRules.find(item => item.sn === sn);
+        console.log(editItem);
+        fillForm(editItem);
+        break;
+
+      case 'del': // 按下刪除
+        if (confirm('確定刪除？')) {
+            console.log('真的要刪！！');
+        }
+        break;
+
+      case 'toggle': // 切換啟用 / 停用
+        break;
+    }
   }
 
   function generateListAndGroups({rules, xoopsGroups}) {
-      generateList(rules);
       generateGroupSelectOptions(xoopsGroups);
+      generateList(rules);
   }
 
   function generateList(rules) {
-    allRules = rules;
-    console.log('allRules', allRules);
+    // console.log(rules)
+    rules = [{sn: 1, rule: {id: '014569', role: ['教師']}, gid: 2, enable: 1}];
+
+    // 還沒有規則
+    if (rules.length === 0) {
+      list.append('<tr><td  colspan="4" class="text-center">-- 尚未設定規則 --</td></tr>');
+      return false;
+    }
+
+    // 附加群組名稱
+    allRules = rules.map(rule => {
+      rule.gname = getXoopsGroupName(rule.gid);
+      return rule;
+    });
+    // console.log('allRules', allRules);
+
+    allRules.forEach(item =>{
+      const html = tmpl.render(item);
+      list.append(html);
+    });
+
+  }
+
+  function getXoopsGroupName(gid) {
+      return allGroups.find(item => item.gid === gid).name;
   }
 
   function generateGroupSelectOptions(groups) {
       allGroups = groups;
-      console.log('allGroups', allGroups);
+      // console.log('allGroups', allGroups);
 
       allGroups.forEach(item => {
           let option = `<option value="${item.gid}">${item.name}</option>`;
-          gidSelect.append(option).val(2);
+          gidSelect.append(option);
       });
+  }
+
+  function fillForm(data) {
+      gidSelect.val('');
   }
 
   function showMsg(error, msg) {

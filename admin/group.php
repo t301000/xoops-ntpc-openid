@@ -17,6 +17,21 @@
             getAllRulesAndGroups();
             break;
 
+        case 'addRule':
+            // {id: "014569123", openid: "user1,user2", role: ["學生"], title: ["教師兼主任"], groups: ["學務主任"], gid: 2}
+            $data = file_get_contents("php://input");
+            store(json_decode($data, true));
+            break;
+
+        case 'updateRule':
+            break;
+
+        case 'delRule':
+            break;
+
+        case 'toggleRule':
+            break;
+
         default:
             show_content();
             break;
@@ -130,3 +145,21 @@
         return $data;
     }
 
+    /**
+     * 新增群組規則
+     *
+     * @param $data
+     */
+    function store($data) {
+        global $xoopsDB;
+
+        $rule = getJSONString($data['rule'], false);
+        $gid = (int) $data['gid'];
+
+        $sql = "INSERT INTO {$xoopsDB->prefix('ntpc_openid_group_rules')} (rule, gid) VALUES ({$rule}, {$gid})";
+        $result = $xoopsDB->query($sql) or die(getJSONString('新增群組規則時發生錯誤'));
+
+        $sn = $xoopsDB->getInsertId();
+
+        die(getJSONResponse(compact('sn'), false));
+    }

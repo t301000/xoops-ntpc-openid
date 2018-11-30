@@ -84,8 +84,8 @@
       <img src="<{$xoops_url}>/modules/ntpc_openid/images/icons/menu.png" style="cursor: move;margin:0px 4px;" alt="<{$smarty.const._TAD_SORTABLE}>" title="<{$smarty.const._TAD_SORTABLE}>">
     </td>
     <td>
-      {{if rule.id}}代碼：{{:rule.id}} {{/if}} |
-      {{if rule.role}}身分：{{:rule.role}} {{/if}}
+      {{if rule.id}}<span class="item">代碼：{{:rule.id}}</span>{{/if}}
+      {{if rule.role}}<span class="item">身分：{{:rule.role}}</span>{{/if}}
     </td>
     <td>
       <div class="btn-group" role="group">

@@ -44,6 +44,10 @@ th.enable {
     width: 50px;
 }
 
+td > .item {
+    margin-right: 10px;
+}
+
 label {
     width: 100%;
     height: 100%;
