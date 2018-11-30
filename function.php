@@ -75,6 +75,75 @@ if (!function_exists('getAllLoginRules')) {
     }
 }
 
+if (!function_exists('getAllGroupRules')) {
+    /**
+     * 取得所有群組規則
+     *
+     * @param bool $only_enable 是否只有啟用
+     *
+     * @return array
+     */
+    function getAllGroupRules($only_enable = false) {
+        global $xoopsDB;
+
+        $rules = [];
+        $sql = "SELECT sn, rule, gid, enable FROM {$xoopsDB->prefix('ntpc_openid_group_rules')}";
+        if ($only_enable) {
+            $sql .= " WHERE enable = 1";
+        }
+        $result = $xoopsDB->query($sql) or die(getJSONString('取得全部群組規則時發生錯誤'));
+
+        while ($item = $xoopsDB->fetchArray($result)) {
+            $item['rule'] = json_decode($item['rule'], true);
+            $rules[] = $item;
+        }
+
+        return convert($rules);
+        // $rules = [
+        //  [
+        //     "sn" => "1",
+        //     "rule" => ["id" => "014569", "role" => ["教師"]]",
+        //     "gid" => "5",
+        //     "enable" => "1"
+        //  ],
+        //  ......
+        //]
+    }
+}
+
+if (!function_exists('convert')) {
+    /**
+     * 轉換部份欄位值之資料型別
+     *
+     * @param array $data
+     *
+     * @return array
+     */
+    function convert(array $data)
+    {
+        // 須轉換為數字之欄位
+        $to_number = ['sn', 'gid', 'enable'];
+
+        $data = array_map(function (array $item) use ($to_number) {
+
+            // $item = [
+            //     "sn" => "1",
+            //     "rule" => ["id" => "014569", "role" => ["教師"]]",
+            //     "gid" => "5",
+            //     "enable" => "1"
+            // ]
+            // array_walk callback 第一個參數在此定義為傳址，表示要直接修改值
+            array_walk($item, function (&$value, $key, $casts) {
+                $value = in_array($key, $casts) ? (int) $value : $value;
+            }, $to_number);
+
+            return $item;
+        }, $data);
+
+        return $data;
+    }
+}
+
 if (!function_exists('getJSONResponse')) {
     /**
      * 將資料以 json 格式回傳，設定 header Content-Type
