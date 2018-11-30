@@ -166,19 +166,19 @@
       {{if rule.openid}}<span class="item">帳號：{{:rule.openid}}</span>{{/if}}
       {{if rule.role}}<span class="item">身分：{{:rule.role}}</span>{{/if}}
       {{if rule.title}}<span class="item">職務：{{:rule.title}}</span>{{/if}}
-      {{if rule.group}}<span class="item">職稱：{{:rule.groups}}</span>{{/if}}
+      {{if rule.groups}}<span class="item">職稱：{{:rule.groups}}</span>{{/if}}
     </td>
     <td>{{:gname}}</td>
     <td>
       <div class="btn-group" role="group">
-        <button type="button" class="btn btn-warning edit-btn" id="edit-{{:sn}}" data-action="edit" data-sn="{{:sn}}">修改</button>
-        <button type="button" class="btn btn-danger del-btn" id="del-{{:sn}}" data-action="del" data-sn="{{:sn}}">刪除</button>
+        <button type="button" class="btn btn-warning edit-btn" data-action="edit" data-sn="{{:sn}}">修改</button>
+        <button type="button" class="btn btn-danger del-btn" data-action="del" data-sn="{{:sn}}">刪除</button>
       </div>
     </td>
     <td>
       <div class="checkbox">
         <label>
-          <input type="checkbox" class="cbox" id="check-{{:sn}}" {{if enable}}checked{{/if}} data-action="toggle" data-sn="{{:sn}}" value="{{:sn}}">
+          <input type="checkbox" class="cbox" {{if enable}}checked{{/if}} data-action="toggle" data-sn="{{:sn}}" value="{{:sn}}">
         </label>
       </div>
     </td>
@@ -224,45 +224,108 @@
   /********* function 區 *********/
 
   function resetAll() {
-
+    resetForm();
+    resetFlagData();
+    resetListItemClass();
   }
 
+  // 重設各旗標變數
+  function resetFlagData() {
+      editItem = null;
+      processing = false;
+  }
+
+  // 重設列表項目之 css class
+  function resetListItemClass() {
+      list.children().removeClass('selected added modified');
+  }
+
+  // 新增 / 更新 按鈕 click handler
   function addEditBtnHandler() {
+    // console.log(gidSelect.val(), openidInput.val(), schoolCodeInput.val(), rolesSelect.val(), titlesSelect.val(), groupsSelect.val());
+    // console.log(canSubmit());
+    if (processing || ! canSubmit()) return false;
+
+    // 群組 id
+    const gid = +gidSelect.val();
+    // 群組規則
+    const rule = {};
+
+    // 校代碼
+    const id = schoolCodeInput.val().trim();
+    if (id) rule.id = id;
+
+    // openid 帳號
+    const openid = openidInput.val().replace(/\s/g, '');
+    if (openid) rule.openid = openid.split(',');
+
+    // 身分
+    const role = rolesSelect.val();
+    if (role.length) rule.role = role;
+
+    // 職務
+    const title = titlesSelect.val();
+    if (title.length) rule.title = title;
+
+    //  職稱
+    const groups = groupsSelect.val();
+    if (groups.length) rule.groups = groups;
+
+    const data = {gid, rule};
+    // console.log(JSON.stringify(data));
+
+      // 更新 或 新增
+    editItem ? updateRule(data) : addRule(data);
 
   }
 
+  // 是否可以送出
+  function canSubmit() {
+    // 有選擇群組而且至少有一個欄位有值才為 true
+    return !!gidSelect.val() && !!(openidInput.val() || schoolCodeInput.val() || rolesSelect.val().length || titlesSelect.val().length || groupsSelect.val().length);
+  }
+
+  // 清單 click handler，統一處理 編輯 / 刪除 / 啟用切換 之 click event
   function listClickHandler(event) {
     // console.log(event.target);
+    if (processing) return false;
+
     const target = $(event.target);
     const action = target.data('action');
     const sn = target.data('sn');
-    console.log(action, sn);
+    // console.log(action, sn);
+
     switch (action) {
       case 'edit': // 按下編輯
         editItem = allRules.find(item => item.sn === sn);
-        console.log(editItem);
+        // console.log(editItem);
         fillForm(editItem);
+        target.closest('tr').addClass('selected').siblings().removeClass('selected added modified');
         break;
 
       case 'del': // 按下刪除
         if (confirm('確定刪除？')) {
-            console.log('真的要刪！！');
+          // console.log('真的要刪！！');
+          delRule(sn);
         }
         break;
 
       case 'toggle': // 切換啟用 / 停用
+        toggleRuleEnable(sn);
         break;
     }
   }
 
+  // 產生規則列表項目 與 群組選單選項
   function generateListAndGroups({rules, xoopsGroups}) {
-      generateGroupSelectOptions(xoopsGroups);
-      generateList(rules);
+    generateGroupSelectOptions(xoopsGroups);
+    generateList(rules);
   }
 
+  // 產生規則列表項目
   function generateList(rules) {
     // console.log(rules)
-    rules = [{sn: 1, rule: {id: '014569', role: ['教師']}, gid: 2, enable: 1}];
+    // rules = [{sn: 1, rule: {id: '014569', role: ['教師']}, gid: 2, enable: 1}];
 
     // 還沒有規則
     if (rules.length === 0) {
@@ -284,26 +347,183 @@
 
   }
 
+  // 以 群組 id 取得 群組名稱
   function getXoopsGroupName(gid) {
-      return allGroups.find(item => item.gid === gid).name;
+    return allGroups.find(item => item.gid === gid).name;
   }
 
+  // 產生群組選單選項
   function generateGroupSelectOptions(groups) {
-      allGroups = groups;
-      // console.log('allGroups', allGroups);
+    allGroups = groups;
+    // console.log('allGroups', allGroups);
 
-      allGroups.forEach(item => {
-          let option = `<option value="${item.gid}">${item.name}</option>`;
-          gidSelect.append(option);
+    allGroups.forEach(item => {
+      let option = `<option value="${item.gid}">${item.name}</option>`;
+      gidSelect.append(option);
+    });
+  }
+
+  // 編輯時填充各欄位
+  function fillForm({gid, rule, enable}) {
+    gidSelect.val(gid || '');
+    schoolCodeInput.val(rule.id || '');
+    openidInput.val(rule.openid && (rule.openid.toString() || ''));
+    rolesSelect.val(rule.role || '');
+    titlesSelect.val(rule.title || '');
+    groupsSelect.val(rule.groups || '');
+
+    changeAddEditBtnMode('edit');
+  }
+
+    // 重設各欄位
+    function resetForm() {
+      gidSelect.val('');
+      schoolCodeInput.val(defaultSchoolCode);
+      openidInput.val('');
+      rolesSelect.val('');
+      titlesSelect.val('');
+      groupsSelect.val('');
+
+      changeAddEditBtnMode('add');
+    }
+
+  // 變更 新增 / 更新 鈕狀態
+  function changeAddEditBtnMode(mode = 'add') {
+    switch (mode) {
+      case 'edit':
+        addEditBtn.text('更新').addClass('btn-warning');
+        break;
+      case 'add':
+      default:
+        addEditBtn.text('新增').removeClass('btn-warning');
+    }
+  }
+
+  // 顯示訊息區塊
+  function showMsg(err, msg) {
+    console.log(err);
+    msgBlock.text(msg);
+    msgBlock.addClass('show');
+    // processing = false;
+    setTimeout(() => msgBlock.removeClass('show'), 3000);
+  }
+
+  // 新增
+  function addRule(data) {
+    processing = true;
+    const url = `${baseURL}?op=addRule`;
+    $.ajax({
+      type: 'POST',
+      url: url,
+      async: true,
+      data: JSON.stringify(data),
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      success: ({sn}) => {
+        // 產生新規則資料
+        const newRule = {sn, ...data};
+        // 補上 群組名稱 與 啟動 欄位
+        newRule.gname = getXoopsGroupName(data.gid);
+        newRule.enable = 1;
+        allRules.push(newRule); // 加入新規則至資料
+        newListItem(newRule); // 加入新列表項目至 dom
+      },
+      error: err => showMsg(err, '新增時發生錯誤'),
+      complete: () => {
+        resetForm();
+        resetFlagData();
+      }
+    });
+  }
+
+  // 新增列表項目至 dom
+  function newListItem(data) {
+    // console.log(data);
+    const html = tmpl.render(data);
+    if (allRules.length === 1) {
+      list.html('');
+    }
+    list.append($(html).addClass('added'));
+  }
+
+  // 更新
+  function updateRule(data) {
+    processing = true;
+    const sn = editItem.sn;
+    // console.log('update => ', sn, data);
+
+    const url = `${baseURL}?op=updateRule&sn=${sn}`;
+    $.ajax({
+      type: 'POST',
+      url: url,
+      async: true,
+      data: JSON.stringify(data),
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      success: () => {
+        // 取代舊規則
+        const updated = {sn, ...data, gname: getXoopsGroupName(data.gid), enable: editItem.enable};
+        allRules.splice(allRules.findIndex(item => item.sn === sn), 1, updated);
+        // console.log(allRules);
+        updateListItem(updated); // 加入新列表項目至 dom
+      },
+      error: err => showMsg(err, '更新時發生錯誤'),
+      complete: () => {
+        resetForm();
+        resetFlagData();
+      }
+    });
+  }
+
+  // 更新列表項目 in dom
+  function updateListItem(data) {
+    list.find(`tr#sn_${data.sn}`).fadeOut(500, function () {
+        const updated = tmpl.render(data);
+        $(this).replaceWith($(updated).addClass('modified'));
+    });
+  }
+
+  // 刪除
+  function delRule(sn) {
+    // console.log('sn to be del => ', sn);
+    processing = true;
+    const url = `${baseURL}?op=delRule&sn=${sn}`;
+    $.get(url)
+     .then(() => {
+       // allRules 中移除
+       const idx = allRules.findIndex(item => item.sn === sn);
+       allRules.splice(idx, 1);
+       // list 中移除 dom element
+       delListItem(sn);
+     })
+     .fail(err => showMsg(err, '刪除時發生錯誤'))
+     .done(() => {
+         resetAll();
+     });
+  }
+
+  // 刪除列表項目 in dom
+  function delListItem(sn) {
+      list.find(`tr#sn_${sn}`).css('background-color', '#ff7983').fadeOut(500, function() {
+          $(this).remove();
       });
   }
 
-  function fillForm(data) {
-      gidSelect.val('');
-  }
-
-  function showMsg(error, msg) {
-
+  // 啟用 / 停用
+  function toggleRuleEnable(sn) {
+    processing = true;
+    const url = `${baseURL}?op=toggleRule&sn=${sn}`;
+    $.get(url)
+     .then(() => {
+         // 更新 allRules
+         const rule = allRules.find(item => item.sn === sn);
+         rule.enable = +(!rule.enable);
+         // console.log(rule, allRules);
+     })
+     .fail(err => showMsg(err, '啟用 / 停用時發生錯誤'))
+     .done(() => {
+         resetAll();
+     });
   }
 
 })($);
