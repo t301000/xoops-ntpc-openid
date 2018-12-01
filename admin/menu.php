@@ -23,7 +23,7 @@ $i++;
 $adminmenu[$i]['title'] = _MI_NTPCOPENID_ADMENU3;
 $adminmenu[$i]['link']  = "admin/officer.php";
 $adminmenu[$i]['desc']  = _MI_NTPCOPENID_ADMENU3_DESC;
-$adminmenu[$i]['icon']  = 'images/admin/team.png';
+$adminmenu[$i]['icon']  = 'images/admin/student.png';
 
 $i++;
 $adminmenu[$i]['title'] = _MI_TAD_ADMIN_ABOUT;

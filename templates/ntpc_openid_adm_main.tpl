@@ -11,7 +11,7 @@
 
 <div class="container-fluid">
   <div class="page-header">
-    <h2>登入規則</h2>
+    <h2>登入規則<small>限制登入身分</small></h2>
   </div>
 
   <div class="row">
@@ -54,9 +54,7 @@
                 <th class="bg-primary enable">啟用</th>
               </tr>
             </thead>
-            <tbody id="list">
-
-            </tbody>
+            <tbody id="list"></tbody>
           </table>
 
         </div>
@@ -89,14 +87,14 @@
     </td>
     <td>
       <div class="btn-group" role="group">
-        <button type="button" class="btn btn-warning edit-btn" id="edit-{{:sn}}" data-sn="{{:sn}}">修改</button>
-        <button type="button" class="btn btn-danger del-btn" id="del-{{:sn}}" data-sn="{{:sn}}">刪除</button>
+        <button type="button" class="btn btn-warning edit-btn" data-action="edit" data-sn="{{:sn}}">修改</button>
+        <button type="button" class="btn btn-danger del-btn" data-action="del" data-sn="{{:sn}}">刪除</button>
       </div>
     </td>
     <td>
       <div class="checkbox">
         <label>
-          <input type="checkbox" class="cbox" id="check-{{:sn}}" {{if enable}}checked{{/if}}  value="{{:sn}}">
+          <input type="checkbox" class="cbox" {{if enable}}checked{{/if}} data-action="toggle" data-sn="{{:sn}}">
         </label>
       </div>
     </td>
@@ -110,33 +108,85 @@
 
     const tmpl = $.templates("#myTmpl");
     const list = $("#list");
+    list.on('click', listClickHandler);
 
     const msgBlock = $('#msg'); // 訊息區塊
 
     const schoolCodeInput = $('#school-code'); // 校代碼輸入
     const defaultSchoolCode = schoolCodeInput.val(); // 預設校代碼
-
     const rolesSelect = $('#roles'); // 身分多選選單
-
     const addEditBtn = $('#add-edit-btn'); // 新增/更新 按鈕
     addEditBtn.on('click', addEditBtnHandler);
-
     const cancelBtn = $('#cancel-btn'); // 取消按鈕
     cancelBtn.on('click', resetAll);
 
-    let editSN = null; // 旗標：紀錄編輯的資料 sn
-    let processing = false; // 旗標：是否處理中
+    // flags
+    let editItem = null; // 紀錄編輯的資料 sn
+    let processing = false; // 是否處理中
 
+    // data
     let allRules = []; // 存放所有規則
 
 
     // 取得所有規則
-    $.get(`${baseURL}?op=getAllRules`)
-      .then(rules => generateList(rules))
-      .fail(err => showMsg(err, '取得所有規則時發生錯誤'))
-      .done(makeListSortable); // 啟動拖拉排序
+    getAllRules();
 
     /********* function 區 *********/
+
+    // list's click handler
+    function listClickHandler(event) {
+      if (processing) return false;
+
+      const target = $(event.target);
+      const action = target.data('action');
+      const sn = target.data('sn');
+      // console.log(action, sn);
+
+      switch (action) {
+        case 'edit':
+          editItem = allRules.find(item => item.sn === sn);
+          // console.log(editItem);
+          fillForm(editItem);
+          target.closest('tr').addClass('selected').siblings().removeClass('selected added modified');
+          break;
+
+        case 'del':
+          if (confirm('確定刪除？')) {
+              // console.log('真的要刪！！');
+              delRule(sn);
+          }
+          break;
+
+        case 'toggle':
+          toggleRuleEnable(sn);
+          break;
+      }
+    }
+
+    // 新增 / 更新 按鈕 click handler
+    function addEditBtnHandler() {
+      if (processing || ! canSubmit()) return false;
+
+      // 群組規則
+      const rule = {};
+
+      // 校代碼
+      const id = schoolCodeInput.val().trim();
+      if (id) rule.id = id;
+
+      // 身分
+      const role = rolesSelect.val();
+      if (role.length) rule.role = role;
+
+      // 更新 或 新增
+      editItem ? updateRule({sn: editItem.sn, rule}) : addRule(rule);
+    }
+
+    // 是否可以送出
+    function canSubmit() {
+      // 至少有一個欄位有值才為 true
+      return !!(schoolCodeInput.val() || rolesSelect.val().length);
+    }
 
     // 產生表格清單
     function generateList(rules) {
@@ -146,203 +196,180 @@
         const html = rules.map(item => tmpl.render(item))
             .reduce((accu, item) => accu+=item, '');
         list.html(html);
-
-        $('.edit-btn').on('click', editBtnHandler);
-        $('.del-btn').on('click', delBtnHandler);
-        $('.cbox').on('click', checkboxHandler);
     }
 
     // 重設 ui 與 旗標狀態
     function resetAll() {
-        addEditBtn.text('新增').removeClass('btn-warning');
-        $(`#sn_${editSN}`).removeClass('selected added modified');
-        editSN = null;
-        processing = false;
-        clearAllRuleFormInput();
+      resetFlags();
+      resetForm();
+      resetListItemClass();
+    }
+
+    // reset flags
+    function resetFlags() {
+      editSN = null;
+      processing = false;
+    }
+
+    // 重設列表項目之 css class
+    function resetListItemClass() {
+        list.children().removeClass('selected added modified');
     }
 
     // 重設輸入表單
-    function clearAllRuleFormInput() {
-        processing = false;
-        schoolCodeInput.val(defaultSchoolCode);
-        rolesSelect.val('');
+    function resetForm() {
+      schoolCodeInput.val(defaultSchoolCode);
+      rolesSelect.val('');
+
+      changeAddEditBtnMode('add');
     }
 
-    // 編輯按鈕 handler
-    function editBtnHandler() {
-        if (processing) return;
-        // console.log('edit => ', $(this).data('sn'));
-        $('#list > tr').removeClass('selected added modified');
+    // 編輯時填充各欄位
+    function fillForm({rule}) {
+      schoolCodeInput.val(rule.id || '');
+      rolesSelect.val(rule.role || '');
 
-        editSN = $(this).data('sn');
-        $(`#sn_${editSN}`).addClass('selected');
-
-        // 找出編輯的 rule
-        const editedRule = allRules.find(rule => rule.sn === editSN );
-        // 更新畫面輸入元素之值
-        addEditBtn.text('更新').addClass('btn-warning');
-        schoolCodeInput.val(editedRule.rule.id);
-        rolesSelect.val(editedRule.rule.role);
+      changeAddEditBtnMode('edit');
     }
 
-    // 刪除按鈕 handler
-    function delBtnHandler() {
-        if (processing) return;
-        // console.log('del => ',$(this).data('sn'));
-        if (confirm('確定刪除？')) {
-            delRule($(this).data('sn'));
-        }
-    }
-
-    // 啟用 / 停用 checkbox handler
-    function checkboxHandler() {
-        console.log('toggle active => ', this.value);
-        processing = true;
-        $.get(`${baseURL}?op=toggleRuleActive&sn=${this.value}`)
-         .then(() => {
-             // 改 allRules
-             let rule = allRules.find(rule => rule.sn === +this.value);
-             rule.enable = +(!rule.enable);
-         })
-         .fail(err => showMsg(err, '規則 啟用 / 停用 時發生錯誤'))
-         .done(resetAll);
-    }
-
-    // 新增 / 編輯 按鈕 handler
-    function addEditBtnHandler() {
-        if (processing) return;
-
-        const id = schoolCodeInput.val().trim();
-        const role = rolesSelect.val();
-        let rule = {};
-        let data;
-
-        if (id === '' && role.length === 0) {
-            // 校代碼為空 且 未選擇身分
-            return;
-        }
-
-        if (id) {
-            rule.id = id;
-        }
-
-        if (role.length > 0) {
-            rule.role = role;
-        }
-
-        // console.log(rule);
-
-        // 執行 更新 或 新增
-        editSN ? updateRule({sn: editSN, rule}) : addRule(rule);
-    }
-
-    // 新增表格清單項目
-    function newListItem(item) {
-        // console.log(item);
-        allRules.push(item); // 加入新規則
-
-        // 附加到列表畫面
-        // const html = $(tmpl.render(item)).addClass('selected').hide().fadeIn(1000);
-        const html = $(tmpl.render(item)).addClass('ui-sortable-handle added');
-        list.append(html);
-        registerListItemClickHandlers(item.sn);
-        processing = false;
-    }
-
-    // 更新表格清單項目
-    function updateListItem(item) {
-        // console.log('after update => ', item);
-        // 替換舊規則
-        const idx = allRules.findIndex(rule => rule.sn === item.sn);
-        allRules.splice(idx, 1, item);
-
-        $(`#sn_${item.sn}`).fadeOut(500, function() {
-            const html = $(tmpl.render(item)).addClass('ui-sortable-handle modified');
-            $(this).replaceWith(html);
-            registerListItemClickHandlers(item.sn);
-        });
-        addEditBtn.removeClass('btn-warning');
-        processing = false;
-    }
-
-    // 刪除表格清單項目
-    function delListItem(sn) {
-        // allRules 中移除
-        const idx = allRules.findIndex(rule => rule.sn === sn);
-        allRules.splice(idx, 1);
-        // list 中移除 dom element
-        $(`#sn_${sn}`).css('background-color', '#ff7983').fadeOut(500, function() {
-            $(this).remove();
-        });
-    }
-
-    // 註冊表格清單指定項目之 編輯 / 刪除 / 啟用停用 handler
-    function registerListItemClickHandlers(sn) {
-        $(`#edit-${sn}`).on('click', editBtnHandler);
-        $(`#del-${sn}`).on('click', delBtnHandler);
-        $(`#check-${sn}`).on('click', checkboxHandler);
-    }
-
-    // 新增規則 ajax request
-    function addRule(data) {
-        processing = true;
-        $.ajax({
-            type: 'POST',
-            url: `${baseURL}?op=addRule`,
-            async: true,
-            data: JSON.stringify(data),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: newRule => newListItem(newRule.result),
-            error: err => showMsg(err, '新增時發生錯誤'),
-            complete: clearAllRuleFormInput
-        });
-    }
-
-    // 更新規則 ajax request
-    function updateRule(data) {
-        processing = true;
-        $.ajax({
-            type: 'POST',
-            url: `${baseURL}?op=updateRule`,
-            async: true,
-            data: JSON.stringify(data),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: updatedRule => updateListItem(updatedRule.result),
-            error: err => showMsg(err, '更新時發生錯誤'),
-            complete: resetAll
-        });
+    // 變更 新增 / 更新 鈕狀態
+    function changeAddEditBtnMode(mode = 'add') {
+      switch (mode) {
+        case 'edit':
+          addEditBtn.text('更新').addClass('btn-warning');
+          break;
+        case 'add':
+        default:
+          addEditBtn.text('新增').removeClass('btn-warning');
+      }
     }
 
     // 刪除規則 ajax request
     function delRule(sn) {
-        processing = true;
-        $.get(`${baseURL}?op=delRule&sn=${sn}`)
-         .then(() => delListItem(sn))
-         .fail(err => showMsg(err, '刪除規則時發生錯誤'))
-         .done(resetAll);
+      processing = true;
+      $.get(`${baseURL}?op=delRule&sn=${sn}`)
+       .then(() => delListItem(sn))
+       .fail(err => showMsg(err, '刪除規則時發生錯誤'))
+       .done(resetAll);
+    }
+
+    // 刪除表格清單項目
+    function delListItem(sn) {
+      // allRules 中移除
+      const idx = allRules.findIndex(rule => rule.sn === sn);
+      allRules.splice(idx, 1);
+      // list 中移除 dom element
+      list.find(`tr#sn_${sn}`).css('background-color', '#ff7983').fadeOut(500, function() {
+          $(this).remove();
+      });
     }
 
     // 顯示訊息區塊
     function showMsg(err, msg) {
-        console.log(err);
-        msgBlock.text(msg);
-        msgBlock.addClass('show');
-        setTimeout(() => msgBlock.removeClass('show'), 3000);
+      console.log(err);
+      msgBlock.text(msg);
+      msgBlock.addClass('show');
+      setTimeout(() => msgBlock.removeClass('show'), 3000);
+    }
+
+    // 取得所有規則
+    function getAllRules() {
+      $.get(`${baseURL}?op=getAllRules`)
+       .then(rules => generateList(rules))
+       .fail(err => showMsg(err, '取得所有規則時發生錯誤'))
+       .done(makeListSortable); // 啟動拖拉排序
+    }
+
+    // 新增規則 ajax request
+    function addRule(data) {
+      processing = true;
+      $.ajax({
+        type: 'POST',
+        url: `${baseURL}?op=addRule`,
+        async: true,
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: newRule => newListItem(newRule.result),
+        error: err => showMsg(err, '新增時發生錯誤'),
+        complete: () => {
+          resetForm();
+          resetFlags();
+        }
+      });
+    }
+
+    // 新增表格清單項目
+    function newListItem(item) {
+      // console.log(item);
+      allRules.push(item); // 加入新規則
+
+      // 附加到列表畫面
+      // const html = $(tmpl.render(item)).addClass('selected').hide().fadeIn(1000);
+      const html = $(tmpl.render(item)).addClass('ui-sortable-handle added');
+      list.append(html);
+    }
+
+    // 啟用 / 停用
+    function toggleRuleEnable(sn) {
+      processing = true;
+      const url = `${baseURL}?op=toggleRuleActive&sn=${sn}`;
+      $.get(url)
+       .then(() => {
+         // 更新 allRules
+         const rule = allRules.find(item => item.sn === sn);
+         rule.enable = +(!rule.enable);
+         // console.log(rule, allRules);
+       })
+       .fail(err => showMsg(err, '啟用 / 停用時發生錯誤'))
+       .done(() => {
+         resetAll();
+       });
+    }
+
+    // 更新規則 ajax request
+    function updateRule(data) {
+      processing = true;
+      $.ajax({
+        type: 'POST',
+        url: `${baseURL}?op=updateRule`,
+        async: true,
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: updatedRule => updateListItem(updatedRule.result),
+        error: err => showMsg(err, '更新時發生錯誤'),
+        complete: () => {
+          resetForm();
+          resetFlags();
+        }
+      });
+    }
+
+    // 更新表格清單項目
+    function updateListItem(item) {
+      // console.log('after update => ', item);
+      // 替換舊規則
+      const idx = allRules.findIndex(rule => rule.sn === item.sn);
+      allRules.splice(idx, 1, item);
+
+      list.find(`tr#sn_${item.sn}`).fadeOut(500, function () {
+          const updated = tmpl.render(item);
+          $(this).replaceWith($(updated).addClass('modified'));
+      });
     }
 
     // 啟動拖拉排序
     function makeListSortable() {
-        $('#list').sortable({ opacity: 0.6, cursor: 'move', update: function() {
+      $('#list').sortable({ opacity: 0.6, cursor: 'move', update: function() {
           $(this).children('tr').removeClass('added modified');
 
           let order = $(this).sortable('serialize');
           $.post('save_sort.php', order, function(theResponse){
-                // do something
-            }).fail(err => showMsg(err, '儲存排序時發生錯誤'));
-          }
-        });
+              // do something
+          }).fail(err => showMsg(err, '儲存排序時發生錯誤'));
+        }
+      });
     }
 
 })($);

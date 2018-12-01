@@ -111,6 +111,40 @@ if (!function_exists('getAllGroupRules')) {
     }
 }
 
+if (!function_exists('getAllOfficers')) {
+    /**
+     * 取得所有行政帳號
+     *
+     * @param bool $only_enable 是否只有啟用
+     *
+     * @return array
+     */
+    function getAllOfficers($only_enable = false) {
+        global $xoopsDB;
+
+        $officers = [];
+        $sql = "SELECT sn, name, enable FROM {$xoopsDB->prefix('ntpc_openid_officer_list')}";
+        if ($only_enable) {
+            $sql .= " WHERE enable = 1";
+        }
+        $result = $xoopsDB->query($sql) or die(getJSONString('取得全部行政帳號時發生錯誤'));
+
+        while ($item = $xoopsDB->fetchArray($result)) {
+            $officers[] = $item;
+        }
+
+        return convert($officers);
+        // $officers = [
+        //  [
+        //     "sn" => 1,
+        //     "name" => "校長",
+        //     "enable" => 1
+        //  ],
+        //  ......
+        //]
+    }
+}
+
 if (!function_exists('convert')) {
     /**
      * 轉換部份欄位值之資料型別

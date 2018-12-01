@@ -7,7 +7,7 @@
 
 <div class="container-fluid">
   <div class="page-header">
-    <h2>群組規則</h2>
+    <h2>群組規則<small>登入時自動設定群組</small></h2>
   </div>
 
   <div class="row">
@@ -215,11 +215,8 @@
   let allRules = []; // 存放所有規則
   let allGroups = []; // 存放所有群組
 
-  // 取得所有規則
-  $.get(`${baseURL}?op=getAllRulesAndGroups`)
-   .then(data => generateListAndGroups(data))
-   .fail(err => showMsg(err, '取得所有規則時發生錯誤'))
-   .done(null);
+  // 取得所有規則與群組
+  getAllRulesAndGroups();
 
   /********* function 區 *********/
 
@@ -231,13 +228,13 @@
 
   // 重設各旗標變數
   function resetFlagData() {
-      editItem = null;
-      processing = false;
+    editItem = null;
+    processing = false;
   }
 
   // 重設列表項目之 css class
   function resetListItemClass() {
-      list.children().removeClass('selected added modified');
+    list.children().removeClass('selected added modified');
   }
 
   // 新增 / 更新 按鈕 click handler
@@ -274,7 +271,7 @@
     const data = {gid, rule};
     // console.log(JSON.stringify(data));
 
-      // 更新 或 新增
+    // 更新 或 新增
     editItem ? updateRule(data) : addRule(data);
 
   }
@@ -406,6 +403,14 @@
     msgBlock.addClass('show');
     // processing = false;
     setTimeout(() => msgBlock.removeClass('show'), 3000);
+  }
+
+  // 取得所有規則與群組
+  function getAllRulesAndGroups() {
+    $.get(`${baseURL}?op=getAllRulesAndGroups`)
+     .then(data => generateListAndGroups(data))
+     .fail(err => showMsg(err, '取得所有規則時發生錯誤'))
+     .done(null);
   }
 
   // 新增

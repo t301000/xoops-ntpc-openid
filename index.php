@@ -488,8 +488,9 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
     // 如果要建立行政帳號
     $is_officer = false; // 是否具有行政身分
     if ($createOfficer) {
+        $allEnabledOfficer = array_column(getAllOfficers(true), 'name');
         // 若為行政，則替換為行政帳號
-        $officer = array_intersect($data['used_authInfo']['groups'], OFFICER);
+        $officer = array_intersect($data['used_authInfo']['groups'], $allEnabledOfficer);
         if ($is_officer = count($officer) > 0) {
             $uname = $officer[0]; // 取第一個
             $uid = get_uid($uname, $data, true); // 行政帳號 uid
@@ -838,9 +839,9 @@ function syncGroup(XoopsUser $user, $data, $is_officer = false) {
 
     $gids_to_add = array_diff($gids, $gids_current);
     $gids_to_remove = array_diff($gids_current, $gids);
-    echo "現有 gid <br>";
-    echo "<pre>";
-    print_r($gids_current);
+    // echo "現有 gid <br>";
+    // echo "<pre>";
+    // print_r($gids_current);
     // echo "</pre>";
     // echo "應有 gid <br>";
     // echo "<pre>";
