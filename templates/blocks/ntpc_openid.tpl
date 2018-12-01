@@ -1,13 +1,3 @@
-<style>
-    img#ntpc-openid {
-        transform: scale(1);
-        transition: all .3s;
-    }
-
-    img#ntpc-openid:hover {
-        transform: scale(1.2);
-    }
-</style>
 <div class="row">
     <div class="col-sm-12">
         <div class="thumbnail" style="background-color: transparent; border: none;">
