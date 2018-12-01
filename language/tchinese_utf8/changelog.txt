@@ -1,0 +1,5 @@
+NTPC OpenID 登入模組 （2018/11/21 0.1 Alpha）
+===========================================
+1.修正 xoops_version.php 中不存在的語系
+2.加入 $xoopsTpl 的用法
+3.加入 bootstrap 的支援
