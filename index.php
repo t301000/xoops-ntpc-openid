@@ -836,6 +836,7 @@ function syncGroup(XoopsUser $user, $data, $is_officer = false) {
 
         return $accu;
     }, $base_gids);
+    $gids = array_unique($gids); // 去除重複元素
 
     $gids_to_add = array_diff($gids, $gids_current);
     $gids_to_remove = array_diff($gids_current, $gids);
