@@ -87,7 +87,7 @@ if (!function_exists('getAllGroupRules')) {
         global $xoopsDB;
 
         $rules = [];
-        $sql = "SELECT sn, rule, gid, enable FROM {$xoopsDB->prefix('ntpc_openid_group_rules')}";
+        $sql = "SELECT sn, rule, gid, enable FROM {$xoopsDB->prefix('ntpc_openid_group_rules')} ORDER BY gid";
         if ($only_enable) {
             $sql .= " WHERE enable = 1";
         }
