@@ -87,10 +87,11 @@ if (!function_exists('getAllGroupRules')) {
         global $xoopsDB;
 
         $rules = [];
-        $sql = "SELECT sn, rule, gid, enable FROM {$xoopsDB->prefix('ntpc_openid_group_rules')} ORDER BY gid";
+        $sql = "SELECT sn, rule, gid, enable FROM {$xoopsDB->prefix('ntpc_openid_group_rules')}";
         if ($only_enable) {
             $sql .= " WHERE enable = 1";
         }
+        $sql .= " ORDER BY gid";
         $result = $xoopsDB->query($sql) or die(getJSONString('取得全部群組規則時發生錯誤'));
 
         while ($item = $xoopsDB->fetchArray($result)) {
