@@ -321,6 +321,7 @@ function loginGuard($data) {
     // 整理授權資訊，將屬於同一所學校之 data 集中，以校代碼為 key
     // 主要用於多重身份
     $authInfos = array_reduce(array($authInfo_check), function ($accu, $item) {
+        $accu[$item['id']]['id'] = $item['id'];
         $accu[$item['id']]['name'] = $item['name'];
         if (!isset($accu[$item['id']]['role'])) $accu[$item['id']]['role'] = [];
         if (!isset($accu[$item['id']]['title'])) $accu[$item['id']]['title'] = [];
@@ -336,6 +337,7 @@ function loginGuard($data) {
     /**
      * $authInfos array(1)
      *     '014569' => array(4)
+     *         'id' => string UTF-8(6) "014569"
      *         'name' => string UTF-8(10) "新北市立育林國民中學"
      *         'role' => array(2)
      *              string UTF-8(2) "教師"
@@ -487,7 +489,7 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
 
     // 如果要建立行政帳號
     $is_officer = false; // 是否具有行政身分
-    if ($createOfficer) {
+    if ($createOfficer && $data['used_authInfo']['id'] === $xoopsModuleConfig['school_code']) {
         $allEnabledOfficer = array_column(getAllOfficers(true), 'name');
         // 若為行政，則替換為行政帳號
         $officer = array_intersect($data['used_authInfo']['groups'], $allEnabledOfficer);
