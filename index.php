@@ -744,60 +744,6 @@ function getPass($uname = "")
     return $random_pass;
 }
 
-
-
-
-// 處理自動群組
-/*
-function add2group($uid = "", $email = "", $SchoolCode = "", $JobName = "")
-{
-    global $xoopsDB, $xoopsUser;
-
-    $member_handler = xoops_getHandler('member');
-    $user           = &$member_handler->getUser($uid);
-    if ($user) {
-        $userGroups = $user->getGroups();
-    } else {
-        header('location:' . XOOPS_URL);
-        exit;
-    }
-
-    $sql    = "SELECT `item`,`kind`,`group_id` FROM `" . $xoopsDB->prefix('tad_login_config') . "`";
-    $result = $xoopsDB->queryF($sql) or web_error($sql);
-    while (list($item, $kind, $group_id) = $xoopsDB->fetchRow($result)) {
-        if (!in_array($group_id, $userGroups)) {
-            //echo "<h1>{$group_id}-{$item}-{$SchoolCode}-{$email}</h1>";
-            if (!empty($SchoolCode) and strpos($item, $SchoolCode) !== false and $JobName == $kind) {
-                $sql = "insert into `" . $xoopsDB->prefix('groups_users_link') . "` (groupid,uid ) values($group_id,$uid)";
-                $xoopsDB->queryF($sql) or web_error($sql);
-                //echo "{$group_id}, {$uid}<br>";
-            }
-
-            if (empty($item) and $JobName == $kind) {
-                $sql = "insert into `" . $xoopsDB->prefix('groups_users_link') . "` (groupid,uid ) values($group_id,$uid)";
-                $xoopsDB->queryF($sql) or web_error($sql);
-            }
-
-            if (!empty($email) and strpos($item, '*') !== false) {
-                $item     = trim($item);
-                $new_item = str_replace('*', '', $item);
-                // die($new_item);
-                if (strpos($email, $new_item) !== false) {
-                    $sql = "insert into `" . $xoopsDB->prefix('groups_users_link') . "` (groupid,uid ) values($group_id,$uid)";
-                    $xoopsDB->queryF($sql) or web_error($sql);
-                }
-            }
-
-            if (!empty($email) and strpos($item, $email) !== false) {
-                $sql = "insert into `" . $xoopsDB->prefix('groups_users_link') . "` (groupid,uid ) values($group_id,$uid)";
-                $xoopsDB->queryF($sql) or web_error($sql);
-                //echo "{$group_id}, {$uid}<br>";
-            }
-        }
-    }
-}
-*/
-
 /**
  * 同步調整群組，回傳是否須重新登入 user
  *
@@ -840,23 +786,27 @@ function syncGroup(XoopsUser $user, $data, $is_officer = false) {
 
     $gids_to_add = array_diff($gids, $gids_current);
     $gids_to_remove = array_diff($gids_current, $gids);
-    // echo "現有 gid <br>";
-    // echo "<pre>";
-    // print_r($gids_current);
-    // echo "</pre>";
-    // echo "應有 gid <br>";
-    // echo "<pre>";
-    // print_r($gids);
-    // echo "</pre>";
-    // echo "增加 gid <br>";
-    // echo "<pre>";
-    // print_r($gids_to_add);
-    // echo "</pre>";
-    // echo "移除 gid <br>";
-    // echo "<pre>";
-    // print_r($gids_to_remove);
-    // echo "</pre>";
-    // die();
+
+    //*************** for debug
+    if (false) {
+        echo "現有 gid <br>";
+        echo "<pre>";
+        print_r($gids_current);
+        echo "</pre>";
+        echo "應有 gid <br>";
+        echo "<pre>";
+        print_r($gids);
+        echo "</pre>";
+        echo "增加 gid <br>";
+        echo "<pre>";
+        print_r($gids_to_add);
+        echo "</pre>";
+        echo "移除 gid <br>";
+        echo "<pre>";
+        print_r($gids_to_remove);
+        echo "</pre>";
+        die();
+    }
 
     // 新增群組
     if (count($gids_to_add) > 0) {
@@ -912,13 +862,17 @@ function checkGroupRule($data, $rule) {
 
     $gid = $rule['gid']; // 取出此規則通過後分配之 group id
     unset($rule['gid']); // 清除，後續檢查時不檢查檢查 gid，因待檢查資料無此欄位
-    // echo "待檢查資料：<br><pre>";
-    // print_r($data_to_check);
-    // echo "</pre>";
-    // echo "規則：<br><pre>";
-    // print_r($rule);
-    // echo "</pre>";
-    // die;
+
+    //*************** for debug
+    if (false) {
+        echo "待檢查資料：<br><pre>";
+        print_r($data_to_check);
+        echo "</pre>";
+        echo "規則：<br><pre>";
+        print_r($rule);
+        echo "</pre>";
+        die;
+    }
 
     $result = true;
     // 逐一檢查各欄位，false first
