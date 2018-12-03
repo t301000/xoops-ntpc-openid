@@ -160,6 +160,7 @@ function normal_mode($op) {
                             $_SESSION['temp_user_data'] = $user_data;
                             show_authInfo_table();
                         } else { // 單一身份
+                            $user_data['used_authInfo'] = $user_data['authInfos'][0];
                             checkThenLogin($user_data);
                         }
                     } else {
@@ -658,7 +659,6 @@ function createUser($data, $officer = false, $url = '', $from = '', $sig = '', $
     $name = $officer ? $uname : trim($data['name']);
     $JobName = $officer ? '行政' : trim($data['used_authInfo']['role']);
     $SchoolCode = trim($data['used_authInfo']['id']);
-
 
     $pass    = randStr(128);
     $newuser = $member_handler->createUser();
