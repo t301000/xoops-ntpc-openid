@@ -79,7 +79,7 @@ function showFakeUserList() {
         $list .= getListItem($uidx, $person);
     }
     $main = <<<INFOS
-        <div class="center-block text-center" style="width: 80%;">
+        <div class="center-block text-center mx-auto" style="width: 80%;">
           <h2>FAKE USERS LIST</h2>
           <div style="display: flex;">$list</div>
         </div>
@@ -199,7 +199,7 @@ function show_authInfo_table()
         $list .= "</a>";
     }
     $main = <<<INFOS
-        <div style="width: 60%; min-width: 400px; border: 1px solid #d9edf7; border-radius: 10px; overflow: hidden;" class="center-block">
+        <div style="width: 60%; min-width: 400px; border: 1px solid #d9edf7; border-radius: 10px; overflow: hidden;" class="center-block mx-auto">
             <h2 class="text-center bg-info" style="margin-top: 0; margin-bottom: 30px; padding: 15px;">選擇登入身份</h2>
             $list
         </div>        
