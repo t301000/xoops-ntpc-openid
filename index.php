@@ -16,8 +16,17 @@ $createOfficer = trim($xoopsModuleConfig['school_code']) !== '' ;
 include_once $GLOBALS['xoops']->path('/modules/system/include/functions.php');
 $op = system_CleanVars($_REQUEST, 'op', '', 'string');
 
-// 已登入則重導回首頁
-if ($xoopsUser) redirectTo(XOOPS_URL);
+// 已登入
+if ($xoopsUser) {
+    if ($op === 'change_user') {
+        // 變身
+        change_user();
+        $url_back = empty($_SESSION['url_back_after_change_user']) ? XOOPS_URL : $_SESSION['url_back_after_change_user'];
+        redirectTo($url_back);
+    }
+    // 重導回首頁
+    redirectTo(XOOPS_URL);
+}
 
 $openid = new LightOpenID(XOOPS_URL);
 
@@ -39,6 +48,24 @@ include_once XOOPS_ROOT_PATH . '/footer.php';
 
 /*-----------function區--------------*/
 
+/**
+ * 變身
+ */
+function change_user() {
+    global $xoopsModuleConfig;
+
+    // 若偏好設定中 不允許切換身分 則停止
+    if (!$xoopsModuleConfig['can_change_user']) {
+        return null;
+    }
+
+    if (empty($_SESSION['ntpcUids']) || empty($_SESSION['ntpcUids']['officer'])) {
+        return null;
+    }
+
+    $type = $_SESSION['xoopsUserId'] === $_SESSION['ntpcUids']['officer'] ? 'personal' : 'officer';
+    $_SESSION['xoopsUserId'] = $_SESSION['ntpcUids'][$type];
+}
 
 /**
  * 測試模式，略過正常 OpenID 流程，使用假資料
@@ -484,9 +511,11 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
     $uname = trim($data['openid']) . "_ntpc";
     $email = trim($data['email']);
 
+    $all_uids = []; // 存放所有 uid，for 變身用
     // 取得 uid
     $uid = get_uid($uname, $data, false); // 個人帳號
     // ddd($uid);
+    $all_uids['personal'] = $uid;
 
     // 如果要建立行政帳號
     $is_officer = false; // 是否具有行政身分
@@ -498,6 +527,7 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
             $uname = $officer[0]; // 取第一個
             $uid = get_uid($uname, $data, true); // 行政帳號 uid
             // ddd($uid);
+            $all_uids['officer'] = $uid;
         }
     }
 
@@ -584,6 +614,7 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
         if (in_array($user_theme, $xoopsConfig['theme_set_allowed'])) {
             $_SESSION['xoopsUserTheme'] = $user_theme;
         }
+        $_SESSION['ntpcUids'] = $all_uids; // 將該使用者所有的帳號 uid 存入 session，for 變身用
 
         // Set cookie for rememberme
         if (!empty($xoopsConfig['usercookie'])) {

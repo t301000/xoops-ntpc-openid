@@ -93,6 +93,14 @@ $modversion['config'][$i]['valuetype']    = 'int';
 $modversion['config'][$i]['default']    = 2;
 
 $i++;
+$modversion['config'][$i]['name']    = 'can_change_user';
+$modversion['config'][$i]['title']    = '_MI_NTPCOPENID_CONFIG_CAN_CHANGE_USER';
+$modversion['config'][$i]['description']    = '_MI_NTPCOPENID_CONFIG_CAN_CHANGE_USER_DESC';
+$modversion['config'][$i]['formtype']    = 'yesno';
+$modversion['config'][$i]['valuetype']    = 'int';
+$modversion['config'][$i]['default']    = 0;
+
+$i++;
 $modversion['config'][$i]['name']    = 'reject_msg';
 $modversion['config'][$i]['title']    = '_MI_NTPCOPENID_CONFIG_REJECT_MSG';
 $modversion['config'][$i]['description']    = '_MI_NTPCOPENID_CONFIG_REJECT_MSG_DESC';
@@ -116,6 +124,13 @@ $modversion['blocks'][$i]['template'] = "ntpc_openid.tpl";
 // $modversion['blocks'][$i]['options'] = "設定值1|設定值2";
 
 $i++;
+$modversion['blocks'][$i]['file'] = "ntpc_openid_change_user.php";
+$modversion['blocks'][$i]['name'] = _MI_NTPCOPENID_BLOCK_NAME_2;
+$modversion['blocks'][$i]['description'] = _MI_NTPCOPENID_BLOCK_DESC_2;
+$modversion['blocks'][$i]['show_func'] = "ntpc_openid_change_user";
+$modversion['blocks'][$i]['template'] = "ntpc_openid_change_user.tpl";
+// $modversion['blocks'][$i]['edit_func'] = "ntpc_openid_edit";
+// $modversion['blocks'][$i]['options'] = "設定值1|設定值2";
 
 //---評論---//
 //$modversion['hasComments'] = 1;
