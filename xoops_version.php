@@ -3,7 +3,7 @@ $modversion = array();
 
 //---模組基本資訊---//
 $modversion['name']        = 'NTPC OpenID';
-$modversion['version']     = 1.04;
+$modversion['version']     = 1.10;
 $modversion['description'] = '新北市 OpenID 登入模組';
 $modversion['author']      = 't301000';
 $modversion['credits']     = 't301000';
@@ -14,7 +14,7 @@ $modversion['image']       = 'images/logo.png';
 $modversion['dirname']     = basename(dirname(__FILE__));
 
 //---模組狀態資訊---//
-$modversion['release_date']        = '2018/12/01';
+$modversion['release_date']        = '2019/01/13';
 $modversion['module_website_url']  = 'https://github.com/t301000/xoops-ntpc-openid';
 $modversion['module_website_name'] = 'NTPC OpenID';
 $modversion['module_status']       = 'release';
