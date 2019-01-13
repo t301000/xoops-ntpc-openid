@@ -7,12 +7,14 @@
             return null;
         }
 
-        // list($url, $query_string) = explode('?', $_SERVER['REQUEST_URI']);
-        // $module = explode('/', $url)[2];
+        $modhandler     = xoops_getHandler('module');
+        $xoopsModule    = $modhandler->getByDirname("ntpc_openid");
+        $config_handler = xoops_getHandler('config');
+        $modConfig      = $config_handler->getConfigsByCat(0, $xoopsModule->mid());
 
-        // if ($module !== 'ntpc_openid') {
-        //     $_SESSION['url_back_after_change_user'] = $_SERVER['REQUEST_URI'];
-        // }
+        if (!$modConfig['can_change_user']) {
+            return null;
+        }
 
         $block = [];
         $handler = xoops_getHandler('member');
