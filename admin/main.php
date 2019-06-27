@@ -1,4 +1,7 @@
 <?php
+
+use XoopsModules\Tadtools\Utility;
+
 /*-----------引入檔案區--------------*/
 $xoopsOption['template_main'] = "ntpc_openid_adm_main.tpl";
 include_once "header.php";
@@ -59,7 +62,7 @@ function show_content()
 {
     global $xoopsTpl, $xoopsModuleConfig;
 
-    get_jquery(true); // 引入 jquery-ui，拖拉排序必備
+    Utility::get_jquery(true); // 引入 jquery-ui，拖拉排序必備
 
     $data['schoolCode'] = $xoopsModuleConfig['school_code'];
     $xoopsTpl->assign('data', $data);
@@ -72,7 +75,7 @@ function store($data) {
     $rule = getJSONString($data, false);
 
     $sql = "INSERT INTO {$xoopsDB->prefix('ntpc_openid_login_rules')} (rule) VALUES ('{$rule}')";
-    $xoopsDB->query($sql) or web_error($sql);
+    $xoopsDB->query($sql) or Utility::web_error($sql);
     $sn = $xoopsDB->getInsertId();
 
     $result['sn'] = $sn;
@@ -89,7 +92,7 @@ function update($data) {
     $rule = getJSONString($data['rule'], false);
 
     $sql = "UPDATE {$xoopsDB->prefix('ntpc_openid_login_rules')} SET rule = '{$rule}' WHERE sn = '{$data['sn']}'";
-    $xoopsDB->query($sql) or web_error($sql);
+    $xoopsDB->query($sql) or Utility::web_error($sql);
 
     return getLoginRuleBySN($data['sn']);
 }
@@ -102,7 +105,7 @@ function toggleActive($sn) {
     $enable = (int) $rule['enable'] ? 0 : 1;
 
     $sql = "UPDATE `{$xoopsDB->prefix('ntpc_openid_login_rules')}` SET `enable` = '{$enable}' WHERE `sn` = '{$sn}'";
-    $result = $xoopsDB->queryF($sql) or web_error($sql);
+    $result = $xoopsDB->queryF($sql) or Utility::web_error($sql);
 
     return $result;
 }
@@ -112,7 +115,7 @@ function destroy($sn) {
     global $xoopsDB;
 
     $sql = "DELETE FROM {$xoopsDB->prefix('ntpc_openid_login_rules')} WHERE sn = '{$sn}'";
-    $result = $xoopsDB->queryF($sql) or web_error($sql);
+    $result = $xoopsDB->queryF($sql) or Utility::web_error($sql);
 
     return $result;
 }
@@ -126,7 +129,7 @@ function getLoginRuleBySN($sn) {
            FROM
                {$xoopsDB->prefix('ntpc_openid_login_rules')}
            WHERE sn = '{$sn}'";
-    $result = $xoopsDB->queryF($sql) or web_error($sql);
+    $result = $xoopsDB->queryF($sql) or Utility::web_error($sql);
 
     list($sn, $rule, $enable) = $xoopsDB->fetchRow($result);
     $sn = (int) $sn;

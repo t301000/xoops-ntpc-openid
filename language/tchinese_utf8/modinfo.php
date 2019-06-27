@@ -1,5 +1,5 @@
 <?php
-include_once XOOPS_ROOT_PATH . "/modules/tadtools/language/{$xoopsConfig['language']}/modinfo_common.php";
+xoops_loadLanguage('modinfo_common', 'tadtools');
 
 // 後台
 define("_MI_NTPCOPENID_ADMENU1", "登入規則");

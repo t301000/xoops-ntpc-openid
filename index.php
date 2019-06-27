@@ -1,4 +1,7 @@
 <?php
+
+use XoopsModules\Tadtools\Utility;
+
 /*-----------引入檔案區--------------*/
 include_once "header.php";
 $xoopsOption['template_main'] = "ntpc_openid_index.tpl";
@@ -691,7 +694,7 @@ function createUser($data, $officer = false, $url = '', $from = '', $sig = '', $
     $JobName = $officer ? '行政' : trim($data['used_authInfo']['role']);
     $SchoolCode = trim($data['used_authInfo']['id']);
 
-    $pass    = randStr(128);
+    $pass    = Utility::randStr(128);
     $newuser = $member_handler->createUser();
     $newuser->setVar("user_viewemail", 1);
     $newuser->setVar("attachsig", 0);
@@ -736,11 +739,11 @@ function createUser($data, $officer = false, $url = '', $from = '', $sig = '', $
             $sql .= ", (" . $xoopsModuleConfig['officer_gid'] . ", $uid)";
         }
 
-        $xoopsDB->queryF($sql) or web_error($sql);
+        $xoopsDB->queryF($sql) or Utility::web_error($sql);
 
         // 紀錄隨機密碼
         $sql = "replace into `" . $xoopsDB->prefix('ntpc_openid_random_pass') . "` (`uname` , `random_pass`) values  ('{$uname}','{$pass}')";
-        $xoopsDB->queryF($sql) or web_error($sql);
+        $xoopsDB->queryF($sql) or Utility::web_error($sql);
 
     } else {
         redirect_header(XOOPS_URL, 5, _MD_NTPCOPENID_CREATE_USER_FAIL);
@@ -763,15 +766,15 @@ function getPass($uname = "")
     }
 
     $sql               = "select `random_pass` from `" . $xoopsDB->prefix('ntpc_openid_random_pass') . "` where `uname`='{$uname}'";
-    $result            = $xoopsDB->queryF($sql) or web_error($sql);
+    $result            = $xoopsDB->queryF($sql) or Utility::web_error($sql);
     list($random_pass) = $xoopsDB->fetchRow($result);
 
     $sql        = "select `pass` from `" . $xoopsDB->prefix('users') . "` where `uname`='{$uname}'";
-    $result     = $xoopsDB->queryF($sql) or web_error($sql);
+    $result     = $xoopsDB->queryF($sql) or Utility::web_error($sql);
     list($pass) = $xoopsDB->fetchRow($result);
     if ($pass !== md5($random_pass)) {
         $sql = "update `" . $xoopsDB->prefix('users') . "` set `pass`=md5('{$random_pass}') where `uname`='{$uname}'";
-        $xoopsDB->queryF($sql) or web_error($sql);
+        $xoopsDB->queryF($sql) or Utility::web_error($sql);
     }
 
     return $random_pass;
@@ -853,7 +856,7 @@ function syncGroup(XoopsUser $user, $data, $is_officer = false) {
                     (groupid, uid)
                 VALUES
                     {$values}";
-        $xoopsDB->queryF($sql) or web_error($sql);
+        $xoopsDB->queryF($sql) or Utility::web_error($sql);
 
         $need_relogin = true;
     }
@@ -867,7 +870,7 @@ function syncGroup(XoopsUser $user, $data, $is_officer = false) {
                     uid = {$user->uid()}
                     AND 
                     groupid IN ({$ids})";
-        $xoopsDB->queryF($sql) or web_error($sql);
+        $xoopsDB->queryF($sql) or Utility::web_error($sql);
 
         $need_relogin = true;
     }
