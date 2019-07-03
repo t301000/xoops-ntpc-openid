@@ -113,6 +113,23 @@
   // 新增至資料庫
   function ajaxCreate() {
     if (processing) return false;
+
+    const name = inputName.val().trim();
+    const openid = inputOpenID.val().trim();
+    const enable = +checkboxEnable.prop('checked');
+
+    if (name === '' || openid === '' ) return false;
+
+    // console.log({name, openid, enable});
+
+    processing = true;
+    const url = `${baseURL}?op=createOfficer`;
+    $.post(url, {name, openid, enable})
+            .then(data => console.log('success', data))
+            .fail(err => console.log('fail', err))
+            .always(() => {
+              resetFlags();
+            });
   }
 
   // 更新至資料庫
@@ -200,7 +217,7 @@
           generateList();
       })
       .fail(err => showMsg(err, '取得所有行政帳號時發生錯誤'))
-      .done(() => resetAll());
+      .always(() => resetFlags());
   }
 
   // 啟用 / 停用
@@ -212,29 +229,43 @@
           el.closest('div.checkbox').toggleClass('text-muted'); // toggle css class
        })
        .fail(err => showMsg(err, '啟用 / 停用自定義行政帳號時發生錯誤'))
-       .done(() => resetAll());
+       .always(() => resetAfterToggle(sn));
   }
 
   // 產生清單列表
   function generateList() {
-      console.log(officers);
+      // console.log(officers);
       officers.forEach(officer => {
-         console.log(officer);
+         // console.log(officer);
          const item = tmpl.render(officer);
          list.append(item);
       });
   }
 
-  // 重設所有旗標與狀態
-  function resetAll() {
+  // toggle 啟用 / 停用 之後重設
+  function resetAfterToggle(sn) {
       resetFlags();
+
+      if (sn && sn === formCurrentSN) {
+        resetForm();
+      }
   }
 
   // 重設所有旗標
   function resetFlags() {
       processing = false;
-      formMode = 'normal';
-      formCurrentSN = null;
+  }
+
+  // 重設表單與相關旗標
+  function resetForm() {
+    formMode = 'normal';
+    formCurrentSN = null;
+    inputName.val('');
+    inputOpenID.val('');
+    checkboxEnable.prop('checked', true);
+    btnCreate.show();
+    btnUpdate.hide();
+    btnDelete.hide();
   }
 
   // 顯示訊息區塊
