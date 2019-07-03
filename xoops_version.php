@@ -14,7 +14,7 @@ $modversion['image']       = 'images/logo.png';
 $modversion['dirname']     = basename(dirname(__FILE__));
 
 //---模組狀態資訊---//
-$modversion['release_date']        = '2019/07/02';
+$modversion['release_date']        = '2019/07/03';
 $modversion['module_website_url']  = 'https://github.com/t301000/xoops-ntpc-openid';
 $modversion['module_website_name'] = 'NTPC OpenID';
 $modversion['module_status']       = 'release';
