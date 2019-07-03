@@ -1,4 +1,7 @@
 <?php
+
+use XoopsModules\Tadtools\Utility;
+
 /*-----------引入檔案區--------------*/
 include_once "header.php";
 $xoopsOption['template_main'] = "ntpc_openid_index.tpl";
@@ -63,8 +66,9 @@ function change_user() {
         return null;
     }
 
-    $type = $_SESSION['xoopsUserId'] === $_SESSION['ntpcUids']['officer'] ? 'personal' : 'officer';
-    $_SESSION['xoopsUserId'] = $_SESSION['ntpcUids'][$type];
+    $type = $_SESSION['xoopsUserId'] === $_SESSION['ntpcUids']['officer']['uid'] ? 'personal' : 'officer';
+    $_SESSION['xoopsUserId'] = $_SESSION['ntpcUids'][$type]['uid'];
+    $_SESSION['xoopsUserGroups'] = $_SESSION['ntpcUids'][$type]['gids'];
 }
 
 /**
@@ -515,7 +519,14 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
     // 取得 uid
     $uid = get_uid($uname, $data, false); // 個人帳號
     // ddd($uid);
-    $all_uids['personal'] = $uid;
+    $gids = [2];
+    if ($xoopsModuleConfig['personal_gid'] > 3) {
+        $gids[] = $xoopsModuleConfig['personal_gid'];
+    }
+    $all_uids['personal'] = [
+    	'uid' => $uid,
+    	'gids' => $gids
+    ];
 
     // 如果要建立行政帳號
     $is_officer = false; // 是否具有行政身分
@@ -527,7 +538,7 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
             $uname = $officer[0]; // 取第一個
             $uid = get_uid($uname, $data, true); // 行政帳號 uid
             // ddd($uid);
-            $all_uids['officer'] = $uid;
+            $all_uids['officer'] = ['uid' => $uid, 'gids' => []];
         }
     }
 
@@ -614,7 +625,8 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
         if (in_array($user_theme, $xoopsConfig['theme_set_allowed'])) {
             $_SESSION['xoopsUserTheme'] = $user_theme;
         }
-        $_SESSION['ntpcUids'] = $all_uids; // 將該使用者所有的帳號 uid 存入 session，for 變身用
+        $all_uids['officer']['gids'] = $_SESSION['xoopsUserGroups'];
+        $_SESSION['ntpcUids'] = $all_uids; // 將該使用者所有的帳號 uid 與 gids 存入 session，for 變身用
 
         // Set cookie for rememberme
         if (!empty($xoopsConfig['usercookie'])) {
@@ -691,7 +703,7 @@ function createUser($data, $officer = false, $url = '', $from = '', $sig = '', $
     $JobName = $officer ? '行政' : trim($data['used_authInfo']['role']);
     $SchoolCode = trim($data['used_authInfo']['id']);
 
-    $pass    = randStr(128);
+    $pass    = Utility::randStr(128);
     $newuser = $member_handler->createUser();
     $newuser->setVar("user_viewemail", 1);
     $newuser->setVar("attachsig", 0);
@@ -736,11 +748,11 @@ function createUser($data, $officer = false, $url = '', $from = '', $sig = '', $
             $sql .= ", (" . $xoopsModuleConfig['officer_gid'] . ", $uid)";
         }
 
-        $xoopsDB->queryF($sql) or web_error($sql);
+        $xoopsDB->queryF($sql) or Utility::web_error($sql);
 
         // 紀錄隨機密碼
         $sql = "replace into `" . $xoopsDB->prefix('ntpc_openid_random_pass') . "` (`uname` , `random_pass`) values  ('{$uname}','{$pass}')";
-        $xoopsDB->queryF($sql) or web_error($sql);
+        $xoopsDB->queryF($sql) or Utility::web_error($sql);
 
     } else {
         redirect_header(XOOPS_URL, 5, _MD_NTPCOPENID_CREATE_USER_FAIL);
@@ -763,15 +775,15 @@ function getPass($uname = "")
     }
 
     $sql               = "select `random_pass` from `" . $xoopsDB->prefix('ntpc_openid_random_pass') . "` where `uname`='{$uname}'";
-    $result            = $xoopsDB->queryF($sql) or web_error($sql);
+    $result            = $xoopsDB->queryF($sql) or Utility::web_error($sql);
     list($random_pass) = $xoopsDB->fetchRow($result);
 
     $sql        = "select `pass` from `" . $xoopsDB->prefix('users') . "` where `uname`='{$uname}'";
-    $result     = $xoopsDB->queryF($sql) or web_error($sql);
+    $result     = $xoopsDB->queryF($sql) or Utility::web_error($sql);
     list($pass) = $xoopsDB->fetchRow($result);
     if ($pass !== md5($random_pass)) {
         $sql = "update `" . $xoopsDB->prefix('users') . "` set `pass`=md5('{$random_pass}') where `uname`='{$uname}'";
-        $xoopsDB->queryF($sql) or web_error($sql);
+        $xoopsDB->queryF($sql) or Utility::web_error($sql);
     }
 
     return $random_pass;
@@ -853,7 +865,7 @@ function syncGroup(XoopsUser $user, $data, $is_officer = false) {
                     (groupid, uid)
                 VALUES
                     {$values}";
-        $xoopsDB->queryF($sql) or web_error($sql);
+        $xoopsDB->queryF($sql) or Utility::web_error($sql);
 
         $need_relogin = true;
     }
@@ -867,7 +879,7 @@ function syncGroup(XoopsUser $user, $data, $is_officer = false) {
                     uid = {$user->uid()}
                     AND 
                     groupid IN ({$ids})";
-        $xoopsDB->queryF($sql) or web_error($sql);
+        $xoopsDB->queryF($sql) or Utility::web_error($sql);
 
         $need_relogin = true;
     }

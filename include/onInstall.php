@@ -1,5 +1,7 @@
 <?php
 
+use XoopsModules\Tadtools\Utility;
+
 /**
  * 模組安裝後執行
  *

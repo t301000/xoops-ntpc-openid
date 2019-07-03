@@ -1,5 +1,5 @@
 <?php
-include_once XOOPS_ROOT_PATH . "/modules/tadtools/language/{$xoopsConfig['language']}/modinfo_common.php";
+xoops_loadLanguage('modinfo_common', 'tadtools');
 
 // 後台
 define("_MI_NTPCOPENID_ADMENU1", "登入規則");
@@ -26,6 +26,9 @@ define('_MI_NTPCOPENID_CONFIG_OFFICER_GID_DESC', '行政人員所屬群組');
 
 define('_MI_NTPCOPENID_CONFIG_CAN_CHANGE_USER', '允許切換身分');
 define('_MI_NTPCOPENID_CONFIG_CAN_CHANGE_USER_DESC', '允許在個人與行政帳號間切換');
+
+define('_MI_NTPCOPENID_CONFIG_PERSONAL_GID', '個人帳號群組');
+define('_MI_NTPCOPENID_CONFIG_PERSONAL_GID_DESC', '個人帳號所屬群組');
 
 define('_MI_NTPCOPENID_CONFIG_REJECT_MSG', '拒絕登入訊息');
 define('_MI_NTPCOPENID_CONFIG_REJECT_MSG_DESC', '無法登入時顯示之訊息');
