@@ -67,7 +67,8 @@ function change_user() {
     }
 
     $type = $_SESSION['xoopsUserId'] === $_SESSION['ntpcUids']['officer'] ? 'personal' : 'officer';
-    $_SESSION['xoopsUserId'] = $_SESSION['ntpcUids'][$type];
+    $_SESSION['xoopsUserId'] = $_SESSION['ntpcUids'][$type]['uid'];
+    $_SESSION['xoopsUserGroups'] = $_SESSION['ntpcUids'][$type]['gids'];
 }
 
 /**
@@ -518,7 +519,10 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
     // 取得 uid
     $uid = get_uid($uname, $data, false); // 個人帳號
     // ddd($uid);
-    $all_uids['personal'] = $uid;
+    $all_uids['personal'] = [
+    	'uid' => $uid,
+    	'gids' => [$xoopsModuleConfig['personal_gid']]
+    ];
 
     // 如果要建立行政帳號
     $is_officer = false; // 是否具有行政身分
@@ -530,7 +534,7 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
             $uname = $officer[0]; // 取第一個
             $uid = get_uid($uname, $data, true); // 行政帳號 uid
             // ddd($uid);
-            $all_uids['officer'] = $uid;
+            $all_uids['officer'] = ['uid' => $uid, 'gids' => ''];
         }
     }
 
@@ -617,7 +621,8 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
         if (in_array($user_theme, $xoopsConfig['theme_set_allowed'])) {
             $_SESSION['xoopsUserTheme'] = $user_theme;
         }
-        $_SESSION['ntpcUids'] = $all_uids; // 將該使用者所有的帳號 uid 存入 session，for 變身用
+        $all_uids['officer']['gids'] = $_SESSION['xoopsUserGroups'];
+        $_SESSION['ntpcUids'] = $all_uids; // 將該使用者所有的帳號 uid 與 gids 存入 session，for 變身用
 
         // Set cookie for rememberme
         if (!empty($xoopsConfig['usercookie'])) {

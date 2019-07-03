@@ -3,7 +3,7 @@ $modversion = array();
 
 //---模組基本資訊---//
 $modversion['name']        = 'NTPC OpenID';
-$modversion['version']     = 1.10;
+$modversion['version']     = 1.11;
 $modversion['description'] = '新北市 OpenID 登入模組';
 $modversion['author']      = 't301000';
 $modversion['credits']     = 't301000';
@@ -99,6 +99,14 @@ $modversion['config'][$i]['description']    = '_MI_NTPCOPENID_CONFIG_CAN_CHANGE_
 $modversion['config'][$i]['formtype']    = 'yesno';
 $modversion['config'][$i]['valuetype']    = 'int';
 $modversion['config'][$i]['default']    = 0;
+
+$i++;
+$modversion['config'][$i]['name']    = 'personal_gid';
+$modversion['config'][$i]['title']    = '_MI_NTPCOPENID_CONFIG_PERSONAL_GID';
+$modversion['config'][$i]['description']    = '_MI_NTPCOPENID_CONFIG_PERSONAL_GID_DESC';
+$modversion['config'][$i]['formtype']    = 'group';
+$modversion['config'][$i]['valuetype']    = 'int';
+$modversion['config'][$i]['default']    = 2;
 
 $i++;
 $modversion['config'][$i]['name']    = 'reject_msg';
