@@ -18,9 +18,9 @@
 
         $block = [];
         $handler = xoops_getHandler('member');
-        foreach($_SESSION['ntpcUids'] as $type => $uid) {
-            if ($xoopsUser->uid() !== $uid) {
-                $block['name'] = $handler->getUser($uid)->name();
+        foreach($_SESSION['ntpcUids'] as $type => $data) {
+            if ($xoopsUser->uid() !== $data['uid']) {
+                $block['name'] = $handler->getUser($data['uid'])->name();
             }
         }
        

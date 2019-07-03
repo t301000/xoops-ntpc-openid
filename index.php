@@ -66,7 +66,7 @@ function change_user() {
         return null;
     }
 
-    $type = $_SESSION['xoopsUserId'] === $_SESSION['ntpcUids']['officer'] ? 'personal' : 'officer';
+    $type = $_SESSION['xoopsUserId'] === $_SESSION['ntpcUids']['officer']['uid'] ? 'personal' : 'officer';
     $_SESSION['xoopsUserId'] = $_SESSION['ntpcUids'][$type]['uid'];
     $_SESSION['xoopsUserGroups'] = $_SESSION['ntpcUids'][$type]['gids'];
 }
@@ -519,9 +519,13 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
     // 取得 uid
     $uid = get_uid($uname, $data, false); // 個人帳號
     // ddd($uid);
+    $gids = [2];
+    if ($xoopsModuleConfig['personal_gid'] > 3) {
+        $gids[] = $xoopsModuleConfig['personal_gid'];
+    }
     $all_uids['personal'] = [
     	'uid' => $uid,
-    	'gids' => [$xoopsModuleConfig['personal_gid']]
+    	'gids' => $gids
     ];
 
     // 如果要建立行政帳號
@@ -534,7 +538,7 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
             $uname = $officer[0]; // 取第一個
             $uid = get_uid($uname, $data, true); // 行政帳號 uid
             // ddd($uid);
-            $all_uids['officer'] = ['uid' => $uid, 'gids' => ''];
+            $all_uids['officer'] = ['uid' => $uid, 'gids' => []];
         }
     }
 
