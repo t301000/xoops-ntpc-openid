@@ -116,6 +116,7 @@
               <option>科任教師</option>
               <option>專任輔導教師</option>
               <option>其他</option>
+              <option id="custom-opt" disabled>-- 以下為自定義職稱 --</option>
             </select>
           </div>
 
@@ -202,6 +203,8 @@
   const rolesSelect = $('#roles'); // 身分多選選單
   const titlesSelect = $('#titles'); // 職務多選選單
   const groupsSelect = $('#groups'); // 職稱多選選單
+  const customOptDivider = $('#custom-opt'); // 職稱多選選單中自定義職稱選項之容器
+  customOptDivider.hide();
 
   const addEditBtn = $('#add-edit-btn'); // 新增/更新 按鈕
   addEditBtn.on('click', addEditBtnHandler);
@@ -214,11 +217,21 @@
 
   let allRules = []; // 存放所有規則
   let allGroups = []; // 存放所有群組
-
+  const customOfficers = <{$data.customOfficers}>; // 此處利用 smarty 語法由 php 直接給值
+  // console.log(customOfficers);
+  appendGroupsOption(customOfficers);
   // 取得所有規則與群組
   getAllRulesAndGroups();
 
   /********* function 區 *********/
+
+  // 附加自定義職稱至選單
+  function appendGroupsOption(data) {
+    if (data.length > 0) {
+      data.forEach(item => groupsSelect.append(`<option>${item}</option>`));
+      customOptDivider.show();
+    }
+  }
 
   function resetAll() {
     resetForm();
