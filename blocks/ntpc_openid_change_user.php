@@ -24,5 +24,5 @@
             }
         }
        
-        return $block;
+        return count($block) > 0 ? $block : null;
     }
