@@ -100,7 +100,7 @@
 
   // 產生清單列表
   function generateList() {
-      console.log(officers);
+      // console.log(officers);
       officers.forEach(officer => {
          const item = tmpl.render(officer);
          list.append(item);
