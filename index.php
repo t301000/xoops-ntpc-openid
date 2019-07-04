@@ -531,11 +531,26 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
     // 如果要建立行政帳號
     $is_officer = false; // 是否具有行政身分
     if ($createOfficer && $data['used_authInfo']['id'] === $xoopsModuleConfig['school_code']) {
-        $allEnabledOfficer = array_column(getAllOfficers(true), 'name');
+        $allEnabledOfficer = array_column(getAllOfficers(true), 'name'); // 所有啟用之正規行政帳號職稱
+        /* 取得所有啟用之自定義行政帳號職稱
+         * 原格式：
+         *   [  ['sn' => 100, 'name' => '課研組長', 'openid' => 't301', 'enable' => 1], [...], ....  ]
+         * 整理為：
+         *   [  't301' => '課研組長', .....  ]
+        */
+        $allEnabledCustomOfficer = array_column(getAllCustomOfficers(true), 'name', 'openid');
         // 若為行政，則替換為行政帳號
         $officer = array_intersect($data['used_authInfo']['groups'], $allEnabledOfficer);
         if ($is_officer = count($officer) > 0) {
             $uname = $officer[0]; // 取第一個
+        } else if ($is_officer = array_key_exists($data['openid'], $allEnabledCustomOfficer)) {
+            // 如果是自定義的行政職稱，如：課研組長
+            $uname = $allEnabledCustomOfficer[$data['openid']]; // uname 設為自定義職稱，如：課研組長
+            $data['used_authInfo']['groups'][] = $uname; // 使用的授權資訊加入自定義職稱
+            //die(var_dump($data['used_authInfo']));
+        }
+
+        if ($is_officer) {
             $uid = get_uid($uname, $data, true); // 行政帳號 uid
             // ddd($uid);
             $all_uids['officer'] = ['uid' => $uid, 'gids' => []];
@@ -625,7 +640,9 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
         if (in_array($user_theme, $xoopsConfig['theme_set_allowed'])) {
             $_SESSION['xoopsUserTheme'] = $user_theme;
         }
-        $all_uids['officer']['gids'] = $_SESSION['xoopsUserGroups'];
+        if ($is_officer) {
+            $all_uids['officer']['gids'] = $_SESSION['xoopsUserGroups'];
+        }
         $_SESSION['ntpcUids'] = $all_uids; // 將該使用者所有的帳號 uid 與 gids 存入 session，for 變身用
 
         // Set cookie for rememberme
