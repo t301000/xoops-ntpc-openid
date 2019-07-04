@@ -24,7 +24,10 @@
             break;
 
         case 'updateOfficer':
-            $data = [];
+            $data['sn'] = system_CleanVars($_REQUEST, 'sn', 0, 'int');
+            $data['name'] = system_CleanVars($_REQUEST, 'name', '', 'string');
+            $data['openid'] = system_CleanVars($_REQUEST, 'openid', '', 'string');
+            $data['enable'] = system_CleanVars($_REQUEST, 'enable', 1, 'int');
             updateOfficer($data);
             break;
 
@@ -76,7 +79,7 @@
         $enable = (int) $officer['enable'] ? 0 : 1;
 
         $sql = "UPDATE {$xoopsDB->prefix('ntpc_openid_custom_officer')} SET enable = {$enable}  WHERE sn = {$sn}";
-        $result = $xoopsDB->queryF($sql) or die(getJSONString("啟用 / 停用 sn = {$sn} 之自定義行政帳號時發生錯誤"));
+        $result = $xoopsDB->queryF($sql) or die(http_response_code(500));
 
         die(getJSONString(['sn' => (int) $sn, 'msg' => '啟用 / 停用完成']));
     }
@@ -92,7 +95,7 @@
         global $xoopsDB;
 
         $sql = "SELECT sn, name, enable FROM {$xoopsDB->prefix('ntpc_openid_custom_officer')} WHERE sn = {$sn}";
-        $result = $xoopsDB->query($sql) or die(getJSONString("取得 sn = {$sn} 之自定義行政帳號時發生錯誤"));
+        $result = $xoopsDB->query($sql) or die(http_response_code(500));
 
         return $xoopsDB->fetchArray($result);
     }
@@ -106,7 +109,7 @@
         global $xoopsDB;
 
         $sql = "INSERT INTO {$xoopsDB->prefix('ntpc_openid_custom_officer')} (name, openid, enable) VALUES ('{$data['name']}', '{$data['openid']}', {$data['enable']})";
-        $result = $xoopsDB->query($sql) or die(getJSONString('新增自定義行政帳號時發生錯誤'));
+        $result = $xoopsDB->query($sql) or die(http_response_code(500));
 
         $sn = $xoopsDB->getInsertId();
 
@@ -121,7 +124,10 @@
     function updateOfficer($data) {
         global $xoopsDB;
 
-        die('update custom officer');
+        $sql = "UPDATE {$xoopsDB->prefix('ntpc_openid_custom_officer')} SET name = '{$data['name']}', openid = '{$data['openid']}', enable = {$data['enable']} WHERE sn = {$data['sn']}";
+        $result = $xoopsDB->query($sql) or die(getJSONString(http_response_code(500)));
+
+        die(getJSONString(['sn' => $data['sn'], 'msg' => '更新完成'], true));
     }
 
     /**

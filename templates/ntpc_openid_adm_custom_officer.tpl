@@ -4,6 +4,10 @@
     /*width: 150px;*/
     user-select: none;
   }
+
+  .officer {
+    width: 300px;
+  }
 </style>
 
 <div class="container-fluid mb-5">
@@ -37,6 +41,7 @@
         <button class="btn btn-primary" type="button" id="create">新增</button>
         <button class="btn btn-primary" type="button" id="update">更新</button>
         <button class="btn btn-danger" type="button" id="delete">刪除</button>
+        <button class="btn btn-default" type="button" id="reset">取消</button>
       </div>
     </div>
   </div>
@@ -45,6 +50,7 @@
     <div class="col-sm-12">
 
       <div class="flex-container flex-wrap" id="list"></div>
+      <div id="empty-msg">---- 沒有資料喔 ----</div>
 
     </div>
   </div>
@@ -63,13 +69,12 @@
   https://www.jsviews.com/#jsrapi
 -->
 <script id="myTmpl" type="text/x-jsrender">
-  <div id="sn_{{:sn}}" class="officer mb-3">
+  <div id="sn_{{:sn}}" class="officer mb-3 flex-basis">
     <div class="checkbox {{if !enable}}text-muted{{/if}} pr-4 d-flex align-items-center">
       <label data-sn={{:sn}} class="mr-2">
          <input type="checkbox" data-sn={{:sn}} {{if enable}}checked{{/if}}> {{:name}} ({{:openid}})
       </label>
-      <button class="btn btn-info mr-2" type="button" data-sn={{:sn}} data-action="edit">編輯</button>
-      <button class="btn btn-danger" type="button" data-sn={{:sn}} data-action="delete">刪除</button>
+      <button class="btn btn-info mr-2" type="button" data-sn={{:sn}}>修改</button>
     </div>
   </div>
 </script>
@@ -82,6 +87,8 @@
   list.on('click', 'input[type=checkbox]', listClickHandler); // 事件委派只接受內部 checkbox 來的
   list.on('click', 'button', listBtnClickHandler); // 事件委派只接受內部 buttton 來的
   const msgBlock = $('#msg'); // 訊息區塊
+  const emptyMsg = $('#empty-msg');
+  emptyMsg.hide();
 
   const inputName = $('#name'); // 自定義行政帳號輸入
   const inputOpenID = $('#openid'); // openid 帳號輸入
@@ -89,9 +96,11 @@
   const btnCreate = $('#create');
   const btnUpdate = $('#update');
   const btnDelete = $('#delete');
+  const btnReset = $('#reset');
   btnCreate.click(ajaxCreate);
   btnUpdate.click(ajaxUpdate);
   btnDelete.click(ajaxDelete);
+  btnReset.click(resetForm);
 
   btnUpdate.hide();
   btnDelete.hide();
@@ -131,6 +140,8 @@
               officers.push(officer);
               const item = tmpl.render(officer);
               list.append(item);
+              emptyMsg.hide();
+              resetForm();
             })
             .fail(err => showMsg(err, `新增自定義行政帳號 ${name} 時發生錯誤`))
             .always(() => {
@@ -141,30 +152,49 @@
   // 更新至資料庫
   function ajaxUpdate(e) {
     if (processing) return false;
+
+    const name = inputName.val().trim();
+    const openid = inputOpenID.val().trim();
+    const enable = +checkboxEnable.prop('checked');
+
+    if (name === '' || openid === '' ) return false;
+
+    // console.log({name, openid, enable});
+
+    processing = true;
+    const url = `${baseURL}?op=updateOfficer`;
+    let newOfficer = {sn: +formCurrentSN, name, openid, enable};
+    $.post(url, newOfficer)
+     .then(() => {
+       officers.splice(officers.findIndex(item => item.sn === newOfficer.sn), 1, newOfficer);
+       const item = tmpl.render(newOfficer);
+       list.find(`div#sn_${formCurrentSN}`).replaceWith(item);
+     })
+     .fail(err => showMsg(err, `新增自定義行政帳號 ${name} 時發生錯誤`))
+     .always(() => {
+       resetFlags();
+     });
   }
 
   // 自資料庫刪除
-  function ajaxDelete(e, targetSN) {
+  function ajaxDelete(e) {
     if (processing) return false;
 
-    const sn = targetSN || formCurrentSN;
-    //console.log(sn);
     // console.log('before delete', officers);
-    if (sn && confirm(`確定要刪除?`)) {
-      //console.log(`要刪除 => ${sn}`);
-
+    if (formCurrentSN && confirm(`確定要刪除?`)) {
       processing = true;
       const url = `${baseURL}?op=deleteOfficer`;
-      $.post(url, {sn})
+      $.post(url, {sn: formCurrentSN})
               .then(() => {
-                officers.splice(officers.findIndex(item => item.sn === sn), 1);
+                officers.splice(officers.findIndex(item => item.sn === formCurrentSN), 1);
                 // console.log('after delete', officers);
-                list.find(`div#sn_${sn}`).remove();
+                list.find(`div#sn_${formCurrentSN}`).remove();
               })
               .fail(err => showMsg(err, `刪除自定義行政帳號時發生錯誤`))
               .always(() => {
                 resetFlags();
-                if (sn === formCurrentSN) resetForm();
+                resetForm();
+                officers.length > 0 ? emptyMsg.hide() : emptyMsg.show();
               });
 
     }
@@ -186,11 +216,9 @@
     if (processing) return false;
     const target = $(event.target);
     const sn = target.data('sn');
-    const action = target.data('action');
-
     // console.log(`${action} => ${sn}`);
 
-    action === 'edit' ? fillForm(sn) : deleteData(sn);
+    fillForm(sn);
   }
 
   // 將編輯之資料填入表單
@@ -204,23 +232,10 @@
     formCurrentSN = sn;
     inputName.val(data.name);
     inputOpenID.val(data.openid);
-    checkboxEnable.prop('checked', data.enable);
+    checkboxEnable.prop('checked', !!data.enable);
     btnCreate.hide();
     btnUpdate.show();
     btnDelete.show();
-  }
-
-  // 刪除資料
-  function deleteData(sn) {
-    const data = getOfficerBySN(sn);
-    // console.log(data);
-
-    if (data === undefined) return false;
-
-    //if (confirm(`要刪除 ${data.name} ?`)) {
-      console.log(`from list 要刪除 => ${sn}`);
-      ajaxDelete(null, sn);
-    //}
   }
 
   // 以 sn 由陣列取得資料
@@ -235,7 +250,7 @@
     $.get(url)
       .then(list => {
           officers = list;
-          generateList();
+          officers.length > 0 ? generateList() : emptyMsg.show();
       })
       .fail(err => showMsg(err, '取得所有行政帳號時發生錯誤'))
       .always(() => resetFlags());
