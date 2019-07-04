@@ -16,7 +16,10 @@
             break;
 
         case 'createOfficer':
-            $data = [];
+            $data['name'] = system_CleanVars($_REQUEST, 'name', '', 'string');
+            $data['openid'] = system_CleanVars($_REQUEST, 'openid', '', 'string');
+            $data['enable'] = system_CleanVars($_REQUEST, 'enable', 1, 'int');
+
             createOfficer($data);
             break;
 
@@ -100,7 +103,14 @@
      * @param $data
      */
     function createOfficer($data) {
-        die('create custom officer');
+        global $xoopsDB;
+
+        $sql = "INSERT INTO {$xoopsDB->prefix('ntpc_openid_custom_officer')} (name, openid, enable) VALUES ('{$data['name']}', '{$data['openid']}', {$data['enable']})";
+        $result = $xoopsDB->query($sql) or die(getJSONString('新增自定義行政帳號時發生錯誤'));
+
+        $sn = $xoopsDB->getInsertId();
+
+        die(getJSONResponse(compact('sn'), false));
     }
 
     /**

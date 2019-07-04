@@ -63,7 +63,7 @@
   https://www.jsviews.com/#jsrapi
 -->
 <script id="myTmpl" type="text/x-jsrender">
-  <div id="sn_{{:sn}}" class="officer">
+  <div id="sn_{{:sn}}" class="officer mb-3">
     <div class="checkbox {{if !enable}}text-muted{{/if}} pr-4 d-flex align-items-center">
       <label data-sn={{:sn}} class="mr-2">
          <input type="checkbox" data-sn={{:sn}} {{if enable}}checked{{/if}}> {{:name}} ({{:openid}})
@@ -125,7 +125,13 @@
     processing = true;
     const url = `${baseURL}?op=createOfficer`;
     $.post(url, {name, openid, enable})
-            .then(data => console.log('success', data))
+            .then(({sn}) => {
+              // console.log('success', sn);
+              const officer = {sn, name, openid, enable};
+              officers.push(officer);
+              const item = tmpl.render(officer);
+              list.append(item);
+            })
             .fail(err => console.log('fail', err))
             .always(() => {
               resetFlags();
