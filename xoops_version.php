@@ -3,7 +3,7 @@ $modversion = array();
 
 //---模組基本資訊---//
 $modversion['name']        = 'NTPC OpenID';
-$modversion['version']     = 1.11;
+$modversion['version']     = 1.20;
 $modversion['description'] = '新北市 OpenID 登入模組';
 $modversion['author']      = 't301000';
 $modversion['credits']     = 't301000';
@@ -14,7 +14,7 @@ $modversion['image']       = 'images/logo.png';
 $modversion['dirname']     = basename(dirname(__FILE__));
 
 //---模組狀態資訊---//
-$modversion['release_date']        = '2019/07/03';
+$modversion['release_date']        = '2019/07/10';
 $modversion['module_website_url']  = 'https://github.com/t301000/xoops-ntpc-openid';
 $modversion['module_website_name'] = 'NTPC OpenID';
 $modversion['module_status']       = 'release';
@@ -53,7 +53,7 @@ $modversion['hasMain'] = 1;
 
 //---模組自動功能---//
 $modversion['onInstall'] = "include/onInstall.php";
-//$modversion['onUpdate'] = "include/update.php";
+$modversion['onUpdate'] = "include/onUpdate.php";
 //$modversion['onUninstall'] = "include/onUninstall.php";
 
 //---樣板設定---//
@@ -69,6 +69,10 @@ $modversion['templates'][$i]['description'] = '後台自動群組管理頁樣板
 $i++;
 $modversion['templates'][$i]['file']        = 'ntpc_openid_adm_officer.tpl';
 $modversion['templates'][$i]['description'] = '後台行政帳號管理頁樣板';
+
+$i++;
+$modversion['templates'][$i]['file']        = 'ntpc_openid_adm_custom_officer.tpl';
+$modversion['templates'][$i]['description'] = '後台自定義行政帳號管理頁樣板';
 
 $i++;
 $modversion['templates'][$i]['file']        = 'ntpc_openid_index.tpl';

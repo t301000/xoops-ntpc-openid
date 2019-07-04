@@ -53,6 +53,7 @@
         global $xoopsTpl, $xoopsModuleConfig;
 
         $data['schoolCode'] = $xoopsModuleConfig['school_code'];
+        $data['customOfficers'] = getJSONString(array_column(getAllCustomOfficers(), 'name'), true);
         $xoopsTpl->assign('data', $data);
     }
 

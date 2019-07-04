@@ -143,6 +143,41 @@ if (!function_exists('getAllOfficers')) {
     }
 }
 
+if (!function_exists('getAllCustomOfficers')) {
+    /**
+     * 取得所有自定義行政帳號
+     *
+     * @param bool $only_enable 是否只有啟用
+     *
+     * @return array
+     */
+    function getAllCustomOfficers($only_enable = false) {
+        global $xoopsDB;
+
+        $officers = [];
+        $sql = "SELECT sn, name, openid, enable FROM {$xoopsDB->prefix('ntpc_openid_custom_officer')}";
+        if ($only_enable) {
+            $sql .= " WHERE enable = 1";
+        }
+        $result = $xoopsDB->query($sql) or die(getJSONString('取得全部自定義行政帳號時發生錯誤'));
+
+        while ($item = $xoopsDB->fetchArray($result)) {
+            $officers[] = $item;
+        }
+
+        return convert($officers);
+        // $officers = [
+        //  [
+        //     "sn" => 1,
+        //     "name" => "課研組長",
+        //     "openid" => "t301",
+        //     "enable" => 1
+        //  ],
+        //  ......
+        //]
+    }
+}
+
 if (!function_exists('convert')) {
     /**
      * 轉換部份欄位值之資料型別

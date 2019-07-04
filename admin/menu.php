@@ -26,6 +26,12 @@ $adminmenu[$i]['desc']  = _MI_NTPCOPENID_ADMENU3_DESC;
 $adminmenu[$i]['icon']  = 'images/admin/student.png';
 
 $i++;
+$adminmenu[$i]['title'] = _MI_NTPCOPENID_ADMENU4;
+$adminmenu[$i]['link']  = "admin/custom_officer.php";
+$adminmenu[$i]['desc']  = _MI_NTPCOPENID_ADMENU4_DESC;
+$adminmenu[$i]['icon']  = 'images/admin/student.png';
+
+$i++;
 $adminmenu[$i]['title'] = _MI_TAD_ADMIN_ABOUT;
 $adminmenu[$i]['link']  = 'admin/about.php';
 $adminmenu[$i]['desc']  = _MI_TAD_ADMIN_ABOUT_DESC;

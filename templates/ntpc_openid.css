@@ -1,6 +1,8 @@
 h2 > small {
     margin-left: 10px;
     vertical-align: baseline;
+    font-size: smaller;
+    color: slategray;
 }
 
 .table .checkbox {

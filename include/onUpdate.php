@@ -2,32 +2,47 @@
 
 use XoopsModules\Tadtools\Utility;
 
-/*
-function xoops_module_update_模組目錄(&$module, $old_version) {
+function xoops_module_update_ntpc_openid(&$module, $old_version) {
     GLOBAL $xoopsDB;
     
-        //if(!chk_chk1()) go_update1();
+    if (!checkIfTableExist()) {
+        return createTable();
+    }
 
     return true;
 }
 
-//檢查某欄位是否存在
-function chk_chk1(){
+/**
+ * 檢查 ntpc_openid_custom_officer 資料表是否存在
+ *
+ * @return bool
+ */
+function checkIfTableExist() {
     global $xoopsDB;
-    $sql="select count(`欄位`) from ".$xoopsDB->prefix("資料表");
-    $result=$xoopsDB->query($sql);
-    if(empty($result)) return false;
-    return true;
+
+    $sql = "SHOW TABLES LIKE '{$xoopsDB->prefix('ntpc_openid_custom_officer')}'";
+    $result = $xoopsDB->query($sql);
+
+    list($table) = $xoopsDB->fetchRow($result);
+
+    return !!$table;
 }
 
-//執行更新
-function go_update1(){
+/**
+ * 建立資料表：ntpc_openid_custom_officer
+ */
+function createTable(){
     global $xoopsDB;
-    $sql="ALTER TABLE ".$xoopsDB->prefix("資料表")." ADD `欄位` smallint(5) NOT NULL";
-    $xoopsDB->queryF($sql) or redirect_header(XOOPS_URL,3,  mysql_error());
 
-    return true;
+    $sql = "CREATE TABLE `{$xoopsDB->prefix('ntpc_openid_custom_officer')}` (
+                `sn` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+                `name` varchar(255) NOT NULL,
+                `openid` varchar(255) NOT NULL,
+                `enable` tinyint(1) NOT NULL DEFAULT '1',
+                PRIMARY KEY (`sn`),
+                UNIQUE KEY `name` (`name`)
+            )";
+    $result = $xoopsDB->query($sql);
+
+    return $result;
 }
-
-*/
-?>
