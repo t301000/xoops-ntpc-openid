@@ -111,7 +111,7 @@
   /********* function 區 *********/
 
   // 新增至資料庫
-  function ajaxCreate() {
+  function ajaxCreate(e) {
     if (processing) return false;
 
     const name = inputName.val().trim();
@@ -127,19 +127,19 @@
     $.post(url, {name, openid, enable})
             .then(({sn}) => {
               // console.log('success', sn);
-              const officer = {sn, name, openid, enable};
+              let officer = {sn, name, openid, enable};
               officers.push(officer);
               const item = tmpl.render(officer);
               list.append(item);
             })
-            .fail(err => console.log('fail', err))
+            .fail(err => showMsg(err, `新增自定義行政帳號 ${name} 時發生錯誤`))
             .always(() => {
               resetFlags();
             });
   }
 
   // 更新至資料庫
-  function ajaxUpdate() {
+  function ajaxUpdate(e) {
     if (processing) return false;
   }
 
@@ -149,8 +149,23 @@
 
     const sn = targetSN || formCurrentSN;
     //console.log(sn);
-    if (sn && confirm(`要刪除 ${inputName.val()} ?`)) {
+    // console.log('before delete', officers);
+    if (sn && confirm(`確定要刪除?`)) {
       //console.log(`要刪除 => ${sn}`);
+
+      processing = true;
+      const url = `${baseURL}?op=deleteOfficer`;
+      $.post(url, {sn})
+              .then(() => {
+                officers.splice(officers.findIndex(item => item.sn === sn), 1);
+                // console.log('after delete', officers);
+                list.find(`div#sn_${sn}`).remove();
+              })
+              .fail(err => showMsg(err, `刪除自定義行政帳號時發生錯誤`))
+              .always(() => {
+                resetFlags();
+                if (sn === formCurrentSN) resetForm();
+              });
 
     }
   }
@@ -202,10 +217,10 @@
 
     if (data === undefined) return false;
 
-    if (confirm(`要刪除 ${data.name} ?`)) {
-      console.log(`要刪除 => ${sn}`);
+    //if (confirm(`要刪除 ${data.name} ?`)) {
+      console.log(`from list 要刪除 => ${sn}`);
       ajaxDelete(null, sn);
-    }
+    //}
   }
 
   // 以 sn 由陣列取得資料

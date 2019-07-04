@@ -119,6 +119,8 @@
      * @param $data
      */
     function updateOfficer($data) {
+        global $xoopsDB;
+
         die('update custom officer');
     }
 
@@ -128,7 +130,12 @@
      * @param $sn
      */
     function deleteOfficer($sn) {
-        die('delete custom officer');
+        global $xoopsDB;
+
+        $sql = "DELETE FROM {$xoopsDB->prefix('ntpc_openid_custom_officer')} WHERE sn = {$sn}";
+        $result = $xoopsDB->queryF($sql) or die(http_response_code(500));
+
+        die(getJSONString(['sn' => $sn, 'msg' => '刪除完成'], true));
     }
 
 
