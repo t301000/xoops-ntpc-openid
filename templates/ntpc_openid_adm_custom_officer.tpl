@@ -143,7 +143,7 @@
               emptyMsg.hide();
               resetForm();
             })
-            .fail(err => showMsg(err, `新增自定義行政帳號 ${name} 時發生錯誤`))
+            .fail(err => showMsg(err.responseJSON.msg, 'error'))
             .always(() => {
               resetFlags();
             });
@@ -169,8 +169,9 @@
        officers.splice(officers.findIndex(item => item.sn === newOfficer.sn), 1, newOfficer);
        const item = tmpl.render(newOfficer);
        list.find(`div#sn_${formCurrentSN}`).replaceWith(item);
+       resetForm();
      })
-     .fail(err => showMsg(err, `新增自定義行政帳號 ${name} 時發生錯誤`))
+     .fail(err => showMsg(err.responseJSON.msg, 'error'))
      .always(() => {
        resetFlags();
      });
@@ -190,7 +191,7 @@
                 // console.log('after delete', officers);
                 list.find(`div#sn_${formCurrentSN}`).remove();
               })
-              .fail(err => showMsg(err, `刪除自定義行政帳號時發生錯誤`))
+              .fail(err => showMsg(err.responseJSON.msg, 'error'))
               .always(() => {
                 resetFlags();
                 resetForm();
@@ -252,7 +253,7 @@
           officers = list;
           officers.length > 0 ? generateList() : emptyMsg.show();
       })
-      .fail(err => showMsg(err, '取得所有行政帳號時發生錯誤'))
+      .fail(err => showMsg(err.responseJSON.msg, 'error'))
       .always(() => resetFlags());
   }
 
@@ -262,9 +263,11 @@
       const url = `${baseURL}?op=toggle&sn=${sn}`;
       $.get(url)
        .then(() => {
-          el.closest('div.checkbox').toggleClass('text-muted'); // toggle css class
+         el.closest('div.checkbox').toggleClass('text-muted'); // toggle css class
+         let target = getOfficerBySN(sn);
+         target.enable = !target.enable;
        })
-       .fail(err => showMsg(err, '啟用 / 停用自定義行政帳號時發生錯誤'))
+       .fail(err => showMsg(err.responseJSON.msg, 'error'))
        .always(() => resetAfterToggle(sn));
   }
 
@@ -305,9 +308,22 @@
   }
 
   // 顯示訊息區塊
-  function showMsg(err, msg) {
-    console.log(err);
+  function showMsg(msg, type = 'success') {
+    // console.log(msg);
     msgBlock.text(msg);
+    switch (type) {
+      case 'success':
+        typeClass = 'bg-success text-white';
+        break;
+
+      case 'error':
+        typeClass = 'bg-danger text-white';
+        break;
+
+      default:
+        typeClass = '';
+    }
+    msgBlock.addClass(typeClass);
     msgBlock.addClass('show');
     // processing = false;
     setTimeout(() => msgBlock.removeClass('show'), 3000);

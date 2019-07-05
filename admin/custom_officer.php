@@ -79,9 +79,9 @@
         $enable = (int) $officer['enable'] ? 0 : 1;
 
         $sql = "UPDATE {$xoopsDB->prefix('ntpc_openid_custom_officer')} SET enable = {$enable}  WHERE sn = {$sn}";
-        $result = $xoopsDB->queryF($sql) or die(http_response_code(500));
+        $result = $xoopsDB->queryF($sql) or die(send_msg(['msg' => '啟用 / 停用 操作失敗'], 500));
 
-        die(getJSONString(['sn' => (int) $sn, 'msg' => '啟用 / 停用完成']));
+        die(send_msg(['sn' => (int) $sn, 'msg' => '啟用 / 停用完成']));
     }
 
     /**
@@ -95,7 +95,7 @@
         global $xoopsDB;
 
         $sql = "SELECT sn, name, enable FROM {$xoopsDB->prefix('ntpc_openid_custom_officer')} WHERE sn = {$sn}";
-        $result = $xoopsDB->query($sql) or die(http_response_code(500));
+        $result = $xoopsDB->query($sql) or die(send_msg(['msg' => '無法取得資料： sn = {$sn}'], 500));
 
         return $xoopsDB->fetchArray($result);
     }
@@ -109,7 +109,7 @@
         global $xoopsDB;
 
         $sql = "INSERT INTO {$xoopsDB->prefix('ntpc_openid_custom_officer')} (name, openid, enable) VALUES ('{$data['name']}', '{$data['openid']}', {$data['enable']})";
-        $result = $xoopsDB->query($sql) or die(http_response_code(500));
+        $result = $xoopsDB->query($sql) or die(send_msg(['msg' => '建立自定義行政帳號失敗'], 500));
 
         $sn = $xoopsDB->getInsertId();
 
@@ -125,9 +125,9 @@
         global $xoopsDB;
 
         $sql = "UPDATE {$xoopsDB->prefix('ntpc_openid_custom_officer')} SET name = '{$data['name']}', openid = '{$data['openid']}', enable = {$data['enable']} WHERE sn = {$data['sn']}";
-        $result = $xoopsDB->query($sql) or die(getJSONString(http_response_code(500)));
+        $result = $xoopsDB->query($sql) or die(send_msg(['msg' => "更新失敗： sn = {$data['sn']}"], 500));
 
-        die(getJSONString(['sn' => $data['sn'], 'msg' => '更新完成'], true));
+        die(send_msg(['sn' => $data['sn'], 'msg' => '更新完成']));
     }
 
     /**
@@ -139,10 +139,20 @@
         global $xoopsDB;
 
         $sql = "DELETE FROM {$xoopsDB->prefix('ntpc_openid_custom_officer')} WHERE sn = {$sn}";
-        $result = $xoopsDB->queryF($sql) or die(http_response_code(500));
+        $result = $xoopsDB->queryF($sql) or die(send_msg(['msg' => '刪除失敗'], 500));
 
-        die(getJSONString(['sn' => $sn, 'msg' => '刪除完成'], true));
+        die(send_msg(['sn' => $sn, 'msg' => '刪除完成']));
     }
 
-
-
+    /**
+     * 傳送資料給前端，並設定 http status code
+     *
+     * @param     $data
+     * @param int $http_code
+     *
+     * @return string
+     */
+    function send_msg($data, $http_code = 200) {
+        http_response_code($http_code);
+        return getJSONResponse($data, true);
+    }
