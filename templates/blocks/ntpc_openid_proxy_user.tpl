@@ -1,9 +1,9 @@
-<{if count($block) > 0}>
+<{if count($block.users) > 0}>
     <form action="/modules/ntpc_openid/index.php" method="post">
         <div class="form-group">
             <select class="form-control" name="to_uid" id="proxy_user_select">
                 <option value="">--- 選擇 ---</option>
-                <{foreach from=$block item=user}>
+                <{foreach from=$block.users item=user}>
                 <option value="<{$user.uid}>"><{$user.name}></option>
                 <{/foreach}>
             </select>
@@ -13,6 +13,7 @@
             <{if $smarty.session.proxyFromUid}>
                 <br>
                 <a class="btn btn-info" href="/modules/ntpc_openid/index.php?op=proxy_user_end" role="button">結束代理</a>
+                <p class="text-danger">目前代理： <{$block.proxyingName}></p>
             <{/if}>
         </div>
         <input type="hidden" name="op" value="proxy_user_start">

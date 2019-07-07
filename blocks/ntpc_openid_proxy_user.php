@@ -22,9 +22,10 @@
         $criteria = new Criteria('uid', '(' . implode(',', $adminIDs) . ')', 'NOT IN');
         $criteria->setSort('name'); // 以姓名排序
         $allUsers = $memberHandler->getUsers($criteria); // 取得 XoopsUser list
-        $block = array_map(function($user) {
+        $block['users'] = array_map(function($user) {
             return [ 'uid' => $user->uid(), 'name' => $user->name()];
         }, $allUsers);
+        $block['proxyingName'] = $xoopsUser->name();
        
-        return count($block) > 0 ? $block : null;
+        return count($block['users']) > 0 ? $block : null;
     }
