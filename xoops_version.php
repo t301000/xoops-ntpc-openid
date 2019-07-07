@@ -3,7 +3,7 @@ $modversion = array();
 
 //---模組基本資訊---//
 $modversion['name']        = 'NTPC OpenID';
-$modversion['version']     = 1.20;
+$modversion['version']     = 1.30;
 $modversion['description'] = '新北市 OpenID 登入模組';
 $modversion['author']      = 't301000';
 $modversion['credits']     = 't301000';
@@ -14,7 +14,7 @@ $modversion['image']       = 'images/logo.png';
 $modversion['dirname']     = basename(dirname(__FILE__));
 
 //---模組狀態資訊---//
-$modversion['release_date']        = '2019/07/05';
+$modversion['release_date']        = '2019/07/07';
 $modversion['module_website_url']  = 'https://github.com/t301000/xoops-ntpc-openid';
 $modversion['module_website_name'] = 'NTPC OpenID';
 $modversion['module_status']       = 'release';
@@ -105,12 +105,20 @@ $modversion['config'][$i]['valuetype']    = 'int';
 $modversion['config'][$i]['default']    = 0;
 
 $i++;
-$modversion['config'][$i]['name']    = 'personal_gid';
-$modversion['config'][$i]['title']    = '_MI_NTPCOPENID_CONFIG_PERSONAL_GID';
-$modversion['config'][$i]['description']    = '_MI_NTPCOPENID_CONFIG_PERSONAL_GID_DESC';
-$modversion['config'][$i]['formtype']    = 'group';
+$modversion['config'][$i]['name']    = 'can_proxy_user';
+$modversion['config'][$i]['title']    = '_MI_NTPCOPENID_CONFIG_CAN_PROXY_USER';
+$modversion['config'][$i]['description']    = '_MI_NTPCOPENID_CONFIG_CAN_PROXY_USER_DESC';
+$modversion['config'][$i]['formtype']    = 'yesno';
 $modversion['config'][$i]['valuetype']    = 'int';
-$modversion['config'][$i]['default']    = 2;
+$modversion['config'][$i]['default']    = 0;
+
+$i++;
+$modversion['config'][$i]['name']    = 'groups_can_proxy';
+$modversion['config'][$i]['title']    = '_MI_NTPCOPENID_CONFIG_GROUPS_CAN_PROXY';
+$modversion['config'][$i]['description']    = '_MI_NTPCOPENID_CONFIG_GROUPS_CAN_PROXY_DESC';
+$modversion['config'][$i]['formtype']    = 'group_multi';
+$modversion['config'][$i]['valuetype']    = 'array';
+$modversion['config'][$i]['default']    = 1;
 
 $i++;
 $modversion['config'][$i]['name']    = 'reject_msg';
@@ -141,6 +149,15 @@ $modversion['blocks'][$i]['name'] = _MI_NTPCOPENID_BLOCK_NAME_2;
 $modversion['blocks'][$i]['description'] = _MI_NTPCOPENID_BLOCK_DESC_2;
 $modversion['blocks'][$i]['show_func'] = "ntpc_openid_change_user";
 $modversion['blocks'][$i]['template'] = "ntpc_openid_change_user.tpl";
+// $modversion['blocks'][$i]['edit_func'] = "ntpc_openid_edit";
+// $modversion['blocks'][$i]['options'] = "設定值1|設定值2";
+
+$i++;
+$modversion['blocks'][$i]['file'] = "ntpc_openid_proxy_user.php";
+$modversion['blocks'][$i]['name'] = '帳號代理';
+$modversion['blocks'][$i]['description'] = '帳號代理';
+$modversion['blocks'][$i]['show_func'] = "ntpc_openid_proxy_user";
+$modversion['blocks'][$i]['template'] = "ntpc_openid_proxy_user.tpl";
 // $modversion['blocks'][$i]['edit_func'] = "ntpc_openid_edit";
 // $modversion['blocks'][$i]['options'] = "設定值1|設定值2";
 

@@ -21,14 +21,31 @@ $op = system_CleanVars($_REQUEST, 'op', '', 'string');
 
 // 已登入
 if ($xoopsUser) {
-    if ($op === 'change_user') {
-        // 變身
-        change_user();
-        $url_back = empty($_SESSION['url_back_after_change_user']) ? XOOPS_URL : $_SESSION['url_back_after_change_user'];
-        redirectTo($url_back);
+    $toUrl = XOOPS_URL;
+    switch ($op) {
+        case 'change_user':
+            // 變身
+            change_user();
+            $toUrl = empty($_SESSION['url_back_after_change_user']) ? XOOPS_URL : $_SESSION['url_back_after_change_user'];
+            redirectTo($toUrl);
+            break;
+
+        case 'proxy_user_start':
+            // 代理
+            $toUid = system_CleanVars($_REQUEST, 'to_uid', 0, 'int');
+            proxy_user($toUid);
+            $toUrl = system_CleanVars($_REQUEST, 'fromUrl', XOOPS_URL, 'string');
+            redirectTo($toUrl);
+            break;
+
+        case 'proxy_user_end':
+            // 代理結束
+            proxy_user();
+            redirectTo($toUrl);
+            break;
     }
     // 重導回首頁
-    redirectTo(XOOPS_URL);
+    redirectTo($toUrl);
 }
 
 $openid = new LightOpenID(XOOPS_URL);
@@ -69,6 +86,42 @@ function change_user() {
     $type = $_SESSION['xoopsUserId'] === $_SESSION['ntpcUids']['officer']['uid'] ? 'personal' : 'officer';
     $_SESSION['xoopsUserId'] = $_SESSION['ntpcUids'][$type]['uid'];
     $_SESSION['xoopsUserGroups'] = $_SESSION['ntpcUids'][$type]['gids'];
+}
+
+    /**
+     * 代理
+     *
+     * @param int $toUid 欲代理之 uid
+     *
+     * @return null
+     */
+function proxy_user($toUid = 0) {
+    global $xoopsModuleConfig, $xoopsUser;
+
+    // 若偏好設定中 不允許代理 則停止
+    if (!$xoopsModuleConfig['can_proxy_user']) {
+        return null;
+    }
+
+    if ($toUid === 0) {
+        // 結束代理，恢復原本 uid
+        $_SESSION['xoopsUserId'] = $_SESSION['proxyFromUid'];
+        unset($_SESSION['proxyFromUid']);
+
+        return false;
+    }
+
+    // 可執行代理之群組 id
+    $can_gids = $xoopsModuleConfig['groups_can_proxy'];
+    // user 所屬群組 id
+    $gids = $xoopsUser->getGroups();
+    // 是否可執行代理
+    $can_proxy = (count(array_intersect($gids, $can_gids)) > 0);
+
+    if ($can_proxy) {
+        $_SESSION['proxyFromUid'] = isset($_SESSION['proxyFromUid']) ? $_SESSION['proxyFromUid'] : $xoopsUser->uid();
+        $_SESSION['xoopsUserId'] = $toUid;
+    }
 }
 
 /**
@@ -519,13 +572,9 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
     // 取得 uid
     $uid = get_uid($uname, $data, false); // 個人帳號
     // ddd($uid);
-    $gids = [2];
-    if ($xoopsModuleConfig['personal_gid'] > 3) {
-        $gids[] = $xoopsModuleConfig['personal_gid'];
-    }
     $all_uids['personal'] = [
     	'uid' => $uid,
-    	'gids' => $gids
+    	'gids' => $member_handler->getGroupsByUser($uid)
     ];
 
     // 如果要建立行政帳號

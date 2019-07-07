@@ -262,7 +262,9 @@
       const url = `${baseURL}?op=toggle&sn=${sn}`;
       $.get(url)
        .then(() => {
-          el.closest('div.checkbox').toggleClass('text-muted'); // toggle css class
+         el.closest('div.checkbox').toggleClass('text-muted'); // toggle css class
+         let target = getOfficerBySN(sn);
+         target.enable = !target.enable;
        })
        .fail(err => showMsg(err, '啟用 / 停用自定義行政帳號時發生錯誤'))
        .always(() => resetAfterToggle(sn));
