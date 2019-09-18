@@ -57,7 +57,7 @@ if (FAKE_MODE) {
     try {
         normal_mode($op);
     } catch (Exception $e) {
-        ddd($e->getMessage());
+        die($e->getMessage());
     }
 }
 
