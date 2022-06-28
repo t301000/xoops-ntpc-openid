@@ -401,7 +401,7 @@ function loginGuard($data) {
     // 只檢查選擇使用之身份
     // 單一身份者取第一筆授權資訊
     $authInfo_check = isset($data['used_authInfo']) ? $data['used_authInfo'] : $data['authInfos'][0];
-    // ddd($authInfo_check);
+    // die($authInfo_check);
 
     // 整理授權資訊，將屬於同一所學校之 data 集中，以校代碼為 key
     // 主要用於多重身份
@@ -418,7 +418,7 @@ function loginGuard($data) {
         return $accu;
     }, []);
 
-    // ddd($authInfos);
+    // die($authInfos);
     /**
      * $authInfos array(1)
      *     '014569' => array(4)
@@ -571,7 +571,7 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
     $all_uids = []; // 存放所有 uid，for 變身用
     // 取得 uid
     $uid = get_uid($uname, $data, false); // 個人帳號
-    // ddd($uid);
+    // die($uid);
     $all_uids['personal'] = [
     	'uid' => $uid,
     	'gids' => $member_handler->getGroupsByUser($uid)
@@ -591,7 +591,7 @@ function login_user($data, $url = '', $from = '', $sig = '', $bio = '', $occ = '
         // 若為行政，則替換為行政帳號
         $officer = array_intersect($data['used_authInfo']['groups'], $allEnabledOfficer);
         if ($is_officer = count($officer) > 0) {
-            $uname = $officer[0]; // 取第一個
+            $uname = array_values($officer)[0]; // 取第一個
         } else if ($is_officer = array_key_exists($data['openid'], $allEnabledCustomOfficer)) {
             // 如果是自定義的行政職稱，如：課研組長
             $uname = $allEnabledCustomOfficer[$data['openid']]; // uname 設為自定義職稱，如：課研組長
