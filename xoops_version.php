@@ -3,7 +3,7 @@ $modversion = array();
 
 //---模組基本資訊---//
 $modversion['name']        = 'NTPC OpenID';
-$modversion['version']     = 1.40;
+$modversion['version']     = 1.50;
 $modversion['description'] = '新北市 OpenID 登入模組';
 $modversion['author']      = 't301000';
 $modversion['credits']     = 't301000';

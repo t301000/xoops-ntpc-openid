@@ -843,6 +843,13 @@ function getPass($uname = "")
     $sql               = "select `random_pass` from `" . $xoopsDB->prefix('ntpc_openid_random_pass') . "` where `uname`='{$uname}'";
     $result            = $xoopsDB->queryF($sql) or Utility::web_error($sql);
     list($random_pass) = $xoopsDB->fetchRow($result);
+    
+    if (!$random_pass) {
+        // 隨機密碼找不到
+        $random_pass = $pass = Utility::randStr(128);
+        $sql = "replace into `" . $xoopsDB->prefix('ntpc_openid_random_pass') . "` (`uname` , `random_pass`) values  ('{$uname}','{$pass}')";
+        $xoopsDB->queryF($sql) or Utility::web_error($sql);
+    }
 
     $sql        = "select `pass` from `" . $xoopsDB->prefix('users') . "` where `uname`='{$uname}'";
     $result     = $xoopsDB->queryF($sql) or Utility::web_error($sql);
